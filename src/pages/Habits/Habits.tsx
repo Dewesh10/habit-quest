@@ -1,10 +1,16 @@
 import { useState } from "react"
 import { icons } from "lucide-react"
 import { useHabits } from "../../hooks/useHabits"
+import { useCompletions } from "../../hooks/useCompletions"
 import { getHabitColorClasses } from "../../utils/colorMap"
 import Modal from "../../components/common/Modal"
 import HabitForm from "../../components/habits/HabitForm"
 import type { Habit } from "../../types"
+import {
+  calculateHabitStreak,
+  calculateCurrentStreak,
+  calculateLongestStreak,
+} from "../../utils/stats"
 
 function HabitIcon({ name, className }: { name: string; className?: string }) {
   const Icon = icons[name as keyof typeof icons]
@@ -23,6 +29,7 @@ function frequencyLabel(habit: Habit): string {
 
 export default function Habits() {
   const { habits, loaded, addHabit, updateHabit } = useHabits()
+  const { completions, loaded: completionsLoaded } = useCompletions()
   const activeHabits = habits.filter((h) => !h.archived)
 
   const [modalOpen, setModalOpen] = useState(false)
@@ -52,9 +59,12 @@ export default function Habits() {
     closeModal()
   }
 
-  if (!loaded) {
+  if (!loaded || !completionsLoaded) {
     return <p className="text-slate-400">Loading habits...</p>
   }
+
+  const currentStreak = calculateCurrentStreak(habits, completions)
+  const longestStreak = calculateLongestStreak(habits, completions)
 
   return (
     <div>
@@ -67,6 +77,23 @@ export default function Habits() {
           + Add Habit
         </button>
       </div>
+
+      {activeHabits.length > 0 && (
+        <div className="flex gap-4 mb-6">
+          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex-1">
+            <p className="text-xs text-slate-400 mb-1">Current Streak</p>
+            <p className="text-lg font-semibold text-white">
+              🔥 {currentStreak} days
+            </p>
+          </div>
+          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex-1">
+            <p className="text-xs text-slate-400 mb-1">Longest Streak</p>
+            <p className="text-lg font-semibold text-white">
+              🏆 {longestStreak} days
+            </p>
+          </div>
+        </div>
+      )}
 
       {activeHabits.length === 0 ? (
         <div className="text-center py-16">
@@ -83,6 +110,7 @@ export default function Habits() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {activeHabits.map((habit) => {
             const colors = getHabitColorClasses(habit.color)
+            const habitStreak = calculateHabitStreak(habit, completions)
             return (
               <button
                 key={habit.id}
@@ -102,6 +130,11 @@ export default function Habits() {
                   <span>{frequencyLabel(habit)}</span>
                   <span className="text-emerald-400 font-medium">+{habit.xpValue} XP</span>
                 </div>
+                {habitStreak > 0 && (
+                  <div className="text-xs text-orange-400 font-medium">
+                    🔥 {habitStreak} day streak
+                  </div>
+                )}
               </button>
             )
           })}
