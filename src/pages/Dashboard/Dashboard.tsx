@@ -9,6 +9,7 @@ import {
   calculateXP,
   calculateLevel,
 } from "../../utils/stats"
+import HabitGrid from "../../components/calendar/HabitGrid"
 
 export default function Dashboard() {
   const { habits, loaded: habitsLoaded } = useHabits()
@@ -58,7 +59,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-8">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-white">Level {level}</span>
           <span className="text-xs text-slate-400">
@@ -77,6 +78,8 @@ export default function Dashboard() {
           />
         </div>
       </div>
+
+      <HabitGrid year={year} month={month} />
     </div>
   )
 }
