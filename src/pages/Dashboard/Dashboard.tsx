@@ -1,56 +1,82 @@
-import { useState } from "react"
-import HabitGrid from "../../components/calendar/HabitGrid"
-import { getMonthName } from "../../utils/date"
+import { useHabits } from "../../hooks/useHabits"
+import { useCompletions } from "../../hooks/useCompletions"
+import { getMonthDates, getMonthName, todayISO } from "../../utils/date"
+import {
+  calculateOverallCompletion,
+  calculateTotalCompleted,
+  calculateRemaining,
+  calculateCurrentStreak,
+  calculateXP,
+  calculateLevel,
+} from "../../utils/stats"
 
 export default function Dashboard() {
-  const now = new Date()
-  const [year, setYear] = useState(now.getFullYear())
-  const [month, setMonth] = useState(now.getMonth())
+  const { habits, loaded: habitsLoaded } = useHabits()
+  const { completions, loaded: completionsLoaded } = useCompletions()
 
-  function prevMonth() {
-    if (month === 0) {
-      setMonth(11)
-      setYear((y) => y - 1)
-    } else {
-      setMonth((m) => m - 1)
-    }
+  if (!habitsLoaded || !completionsLoaded) {
+    return <p className="text-slate-400">Loading...</p>
   }
 
-  function nextMonth() {
-    if (month === 11) {
-      setMonth(0)
-      setYear((y) => y + 1)
-    } else {
-      setMonth((m) => m + 1)
-    }
-  }
+  const today = new Date()
+  const year = today.getFullYear()
+  const month = today.getMonth()
+  const monthDates = getMonthDates(year, month)
+
+  const overallCompletion = calculateOverallCompletion(habits, completions)
+  const totalCompleted = calculateTotalCompleted(completions)
+  const remaining = calculateRemaining(habits, completions, monthDates)
+  const currentStreak = calculateCurrentStreak(habits, completions)
+  const xp = calculateXP(habits, completions)
+  const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
+
+  const stats = [
+    { label: "Overall Completion", value: `${overallCompletion}%` },
+    { label: "Completed", value: totalCompleted },
+    { label: "Remaining", value: remaining },
+    { label: "Current Streak", value: `${currentStreak} days` },
+    { label: "XP", value: xp.toLocaleString() },
+    { label: "Level", value: level },
+  ]
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
-          <div className="flex items-center gap-3 mt-1">
-            <button
-              onClick={prevMonth}
-              className="text-slate-400 hover:text-white text-sm"
-            >
-              ?
-            </button>
-            <span className="text-slate-300 text-sm font-medium">
-              {getMonthName(month)} {year}
-            </span>
-            <button
-              onClick={nextMonth}
-              className="text-slate-400 hover:text-white text-sm"
-            >
-              ?
-            </button>
+      <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
+      <p className="text-slate-400 mb-6">
+        {getMonthName(month)} {year} · {todayISO()}
+      </p>
+
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        {stats.map((s) => (
+          <div
+            key={s.label}
+            className="bg-slate-900 border border-slate-800 rounded-xl p-4"
+          >
+            <p className="text-xs text-slate-400 mb-1">{s.label}</p>
+            <p className="text-xl font-semibold text-white">{s.value}</p>
           </div>
-        </div>
+        ))}
       </div>
 
-      <HabitGrid year={year} month={month} />
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-white">Level {level}</span>
+          <span className="text-xs text-slate-400">
+            {xp - currentLevelXP} / {nextLevelXP - currentLevelXP} XP
+          </span>
+        </div>
+        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-emerald-500"
+            style={{
+              width: `${Math.min(
+                100,
+                ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
+              )}%`,
+            }}
+          />
+        </div>
+      </div>
     </div>
   )
 }
