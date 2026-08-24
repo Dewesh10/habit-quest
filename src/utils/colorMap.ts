@@ -27,3 +27,16 @@ const colorMap: Record<string, ColorClasses> = {
 export function getHabitColorClasses(color: string): ColorClasses {
   return colorMap[color] ?? colorMap.slate
 }
+
+export const SWATCH_CLASSES: Record<string, string> = {
+  amber: "bg-amber-500",
+  red: "bg-red-500",
+  blue: "bg-blue-500",
+  violet: "bg-violet-500",
+  teal: "bg-teal-500",
+  lime: "bg-lime-500",
+  cyan: "bg-cyan-500",
+  green: "bg-green-500",
+  indigo: "bg-indigo-500",
+  slate: "bg-slate-500",
+}
