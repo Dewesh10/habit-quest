@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getMonthDates, getMonthName, todayISO } from "../../utils/date"
@@ -15,6 +16,33 @@ export default function Dashboard() {
   const { habits, loaded: habitsLoaded } = useHabits()
   const { completions, loaded: completionsLoaded } = useCompletions()
 
+  const [showLevelUp, setShowLevelUp] = useState(false)
+  const [levelUpValue, setLevelUpValue] = useState(1)
+  const prevLevel = useRef<number | null>(null)
+
+  const xp = habitsLoaded && completionsLoaded ? calculateXP(habits, completions) : 0
+  const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
+
+  useEffect(() => {
+    if (!habitsLoaded || !completionsLoaded) return
+
+    if (prevLevel.current === null) {
+      // First render after data loads: just record the level, don't celebrate.
+      prevLevel.current = level
+      return
+    }
+
+    if (level > prevLevel.current) {
+      setLevelUpValue(level)
+      setShowLevelUp(true)
+      const timer = setTimeout(() => setShowLevelUp(false), 3000)
+      prevLevel.current = level
+      return () => clearTimeout(timer)
+    }
+
+    prevLevel.current = level
+  }, [level, habitsLoaded, completionsLoaded])
+
   if (!habitsLoaded || !completionsLoaded) {
     return <p className="text-slate-400">Loading...</p>
   }
@@ -28,8 +56,6 @@ export default function Dashboard() {
   const totalCompleted = calculateTotalCompleted(completions)
   const remaining = calculateRemaining(habits, completions, monthDates)
   const currentStreak = calculateCurrentStreak(habits, completions)
-  const xp = calculateXP(habits, completions)
-  const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
 
   const stats = [
     { label: "Overall Completion", value: `${overallCompletion}%` },
@@ -42,6 +68,12 @@ export default function Dashboard() {
 
   return (
     <div>
+      {showLevelUp && (
+        <div className="fixed top-6 right-6 z-50 bg-emerald-500 text-slate-950 font-semibold px-5 py-3 rounded-xl shadow-lg animate-pulse">
+          🎉 Level Up! You're now Level {levelUpValue}
+        </div>
+      )}
+
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
       <p className="text-slate-400 mb-6">
         {getMonthName(month)} {year} · {todayISO()}
