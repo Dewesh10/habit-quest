@@ -12,7 +12,7 @@ function App() {
     <BrowserRouter>
       <div className="flex min-h-screen bg-slate-950">
         <Sidebar />
-        <main className="flex-1 p-6 pb-24 md:pb-6">
+        <main className="flex-1 min-w-0 overflow-x-hidden p-6 pb-24 md:pb-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/habits" element={<Habits />} />

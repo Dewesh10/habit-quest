@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
+import { useSettings } from "../../hooks/useSettings"
+import { useAchievements } from "../../hooks/useAchievements"
 import { getMonthDates, getMonthName, todayISO } from "../../utils/date"
 import {
   calculateOverallCompletion,
@@ -9,25 +11,34 @@ import {
   calculateCurrentStreak,
   calculateXP,
   calculateLevel,
+  calculateBestHabit,
+  calculateWorstHabit,
 } from "../../utils/stats"
 import HabitGrid from "../../components/calendar/HabitGrid"
 
 export default function Dashboard() {
   const { habits, loaded: habitsLoaded } = useHabits()
   const { completions, loaded: completionsLoaded } = useCompletions()
+  const { settings, loaded: settingsLoaded } = useSettings()
+  const { achievements, loaded: achievementsLoaded } = useAchievements(
+    habits,
+    completions
+  )
 
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [levelUpValue, setLevelUpValue] = useState(1)
   const prevLevel = useRef<number | null>(null)
 
-  const xp = habitsLoaded && completionsLoaded ? calculateXP(habits, completions) : 0
+  const allLoaded =
+    habitsLoaded && completionsLoaded && settingsLoaded && achievementsLoaded
+
+  const xp = allLoaded ? calculateXP(habits, completions) : 0
   const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
 
   useEffect(() => {
-    if (!habitsLoaded || !completionsLoaded) return
+    if (!allLoaded) return
 
     if (prevLevel.current === null) {
-      // First render after data loads: just record the level, don't celebrate.
       prevLevel.current = level
       return
     }
@@ -41,9 +52,9 @@ export default function Dashboard() {
     }
 
     prevLevel.current = level
-  }, [level, habitsLoaded, completionsLoaded])
+  }, [level, allLoaded])
 
-  if (!habitsLoaded || !completionsLoaded) {
+  if (!allLoaded) {
     return <p className="text-slate-400">Loading...</p>
   }
 
@@ -56,6 +67,17 @@ export default function Dashboard() {
   const totalCompleted = calculateTotalCompleted(completions)
   const remaining = calculateRemaining(habits, completions, monthDates)
   const currentStreak = calculateCurrentStreak(habits, completions)
+
+  const bestHabit = calculateBestHabit(habits, completions, monthDates)
+  const worstHabit = calculateWorstHabit(habits, completions, monthDates)
+
+  const goal = settings.monthlyGoal
+  const goalProgress = goal > 0 ? Math.min(100, Math.round((totalCompleted / goal) * 100)) : 0
+
+  const recentAchievements = achievements
+    .filter((a) => a.unlockedAt)
+    .sort((a, b) => (b.unlockedAt! > a.unlockedAt! ? 1 : -1))
+    .slice(0, 3)
 
   const stats = [
     { label: "Overall Completion", value: `${overallCompletion}%` },
@@ -79,7 +101,7 @@ export default function Dashboard() {
         {getMonthName(month)} {year} · {todayISO()}
       </p>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
         {stats.map((s) => (
           <div
             key={s.label}
@@ -91,7 +113,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-8">
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm text-white">Level {level}</span>
           <span className="text-xs text-slate-400">
@@ -108,6 +130,56 @@ export default function Dashboard() {
               )}%`,
             }}
           />
+        </div>
+      </div>
+
+      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6">
+        <div className="flex justify-between items-center mb-2">
+          <span className="text-sm text-white">Monthly Goal</span>
+          <span className="text-xs text-slate-400">
+            {totalCompleted} / {goal} ({goalProgress}%)
+          </span>
+        </div>
+        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-sky-500"
+            style={{ width: `${goalProgress}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-sm text-white mb-3">Top Habits</p>
+          {bestHabit ? (
+            <p className="text-slate-300 text-sm">
+              🥇 {bestHabit.name}
+            </p>
+          ) : (
+            <p className="text-slate-500 text-sm">Not enough data yet.</p>
+          )}
+          {worstHabit && worstHabit.id !== bestHabit?.id && (
+            <p className="text-slate-500 text-xs mt-2">
+              Needs attention: {worstHabit.name}
+            </p>
+          )}
+        </div>
+
+        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
+          <p className="text-sm text-white mb-3">Recent Achievements</p>
+          {recentAchievements.length === 0 ? (
+            <p className="text-slate-500 text-sm">
+              Complete habits to unlock achievements.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-1">
+              {recentAchievements.map((a) => (
+                <p key={a.id} className="text-slate-300 text-xs">
+                  🏆 {a.name}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
