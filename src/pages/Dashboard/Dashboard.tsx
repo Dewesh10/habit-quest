@@ -4,6 +4,7 @@ import { useCompletions } from "../../hooks/useCompletions"
 import { useSettings } from "../../hooks/useSettings"
 import { useAchievements } from "../../hooks/useAchievements"
 import { useNotificationLog } from "../../hooks/useNotificationLog"
+import LevelUpOverlay from "../../components/dashboard/LevelUpOverlay"
 import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
   calculateOverallCompletion,
@@ -61,9 +62,8 @@ export default function Dashboard() {
       setShowLevelUp(true)
       if (settings.soundEnabled) playLevelUpSound()
       logEvent("levelup", `Level Up! You're now Level ${level}`)
-      const timer = setTimeout(() => setShowLevelUp(false), 3000)
       prevLevel.current = level
-      return () => clearTimeout(timer)
+      return
     }
 
     prevLevel.current = level
@@ -151,12 +151,7 @@ export default function Dashboard() {
       )}
 
       {showLevelUp && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 system-panel px-6 py-3 shadow-[0_0_30px_rgba(56,189,248,0.6)] text-center">
-          <p className="system-panel-header mb-1">System Alert</p>
-          <p className="text-white font-semibold">
-            🎉 Level Up! You're now Level {levelUpValue}
-          </p>
-        </div>
+        <LevelUpOverlay level={levelUpValue} onDone={() => setShowLevelUp(false)} />
       )}
 
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>

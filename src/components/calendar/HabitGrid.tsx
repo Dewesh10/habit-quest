@@ -1,3 +1,5 @@
+﻿import { useState } from "react"
+import type { CSSProperties } from "react"
 import { icons } from "lucide-react"
 import { getHabitColorClasses } from "../../utils/colorMap"
 import { getMonthDates, isScheduledOn, todayISO } from "../../utils/date"
@@ -11,7 +13,7 @@ function HabitIcon({ name, className }: { name: string; className?: string }) {
 
 interface HabitGridProps {
   year: number
-  month: number // 0-indexed
+  month: number
   habits: Habit[]
   isCompleted: (habitId: string, dateISO: string) => boolean
   toggleCompletion: (habitId: string, dateISO: string) => void
@@ -26,6 +28,7 @@ export default function HabitGrid({
   toggleCompletion,
   onComplete,
 }: HabitGridProps) {
+  const [burstKey, setBurstKey] = useState<string | null>(null)
   const activeHabits = habits.filter((h) => !h.archived)
   const dates = getMonthDates(year, month)
   const today = todayISO()
@@ -41,8 +44,13 @@ export default function HabitGrid({
   function handleToggle(habit: Habit, dateISO: string) {
     const wasCompleted = isCompleted(habit.id, dateISO)
     toggleCompletion(habit.id, dateISO)
-    if (!wasCompleted && onComplete) {
-      onComplete(habit.name, habit.xpValue)
+    if (!wasCompleted) {
+      if (onComplete) onComplete(habit.name, habit.xpValue)
+      const key = `${habit.id}-${dateISO}`
+      setBurstKey(key)
+      setTimeout(() => {
+        setBurstKey((current) => (current === key ? null : current))
+      }, 500)
     }
   }
 
@@ -84,6 +92,7 @@ export default function HabitGrid({
                 {dates.map((dateISO) => {
                   const scheduled = isScheduledOn(habit.frequency, dateISO)
                   const completed = isCompleted(habit.id, dateISO)
+                  const key = `${habit.id}-${dateISO}`
 
                   if (!scheduled) {
                     return (
@@ -97,7 +106,7 @@ export default function HabitGrid({
                     <td key={dateISO} className="text-center px-1.5 py-2">
                       <button
                         onClick={() => handleToggle(habit, dateISO)}
-                        className={`w-5 h-5 mx-auto rounded border-2 transition-colors ${
+                        className={`relative w-5 h-5 mx-auto rounded border-2 transition-colors ${
                           completed ? "check-pop" : ""
                         } ${
                           completed
@@ -105,7 +114,20 @@ export default function HabitGrid({
                             : "border-slate-600 hover:border-blue-500"
                         }`}
                         aria-label={`Toggle ${habit.name} for ${dateISO}`}
-                      />
+                      >
+                        {burstKey === key && (
+                          <>
+                            <span className="burst-ring" />
+                            {Array.from({ length: 6 }).map((_, i) => (
+                              <span
+                                key={i}
+                                className="burst-dot"
+                                style={{ "--angle": `${i * 60}deg` } as CSSProperties}
+                              />
+                            ))}
+                          </>
+                        )}
+                      </button>
                     </td>
                   )
                 })}
