@@ -1,4 +1,4 @@
-import {
+﻿import {
   BarChart,
   Bar,
   XAxis,
@@ -14,6 +14,7 @@ import {
   AreaChart,
   Area,
 } from "recharts"
+import CalendarHeatmap from "../../components/analytics/CalendarHeatmap"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getMonthDates, getMonthName } from "../../utils/date"
@@ -193,7 +194,12 @@ export default function Analytics() {
             </ResponsiveContainer>
           )}
         </ChartCard>
+
+        <ChartCard title="Activity Heatmap" subtitle="Last 26 weeks" className="lg:col-span-2">
+          <CalendarHeatmap habits={habits} completions={completions} weeksToShow={26} />
+        </ChartCard>
       </div>
     </div>
   )
 }
+

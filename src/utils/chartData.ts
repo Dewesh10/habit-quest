@@ -175,3 +175,21 @@ export function buildXPProgressionData(
 }
 
 export { toISODate }
+export interface HeatmapPoint {
+  date: string
+  completed: number
+  total: number
+  percent: number
+}
+
+export function buildHeatmapData(
+  habits: Habit[],
+  completions: Completion[],
+  dates: string[]
+): HeatmapPoint[] {
+  return dates.map((dateISO) => {
+    const { completed, total } = statsForDate(habits, completions, dateISO)
+    const percent = total === 0 ? 0 : Math.round((completed / total) * 100)
+    return { date: dateISO, completed, total, percent }
+  })
+}
