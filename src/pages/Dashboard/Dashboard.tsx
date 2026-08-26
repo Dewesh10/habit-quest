@@ -25,7 +25,7 @@ import { buildStatAllocations } from "../../utils/statMap"
 
 export default function Dashboard() {
   const { habits, loaded: habitsLoaded } = useHabits()
-  const { completions, loaded: completionsLoaded } = useCompletions()
+  const { completions, loaded: completionsLoaded, isCompleted, toggleCompletion } = useCompletions()
   const { settings, loaded: settingsLoaded } = useSettings()
   const { achievements, loaded: achievementsLoaded, newlyUnlocked, clearNewlyUnlocked } = useAchievements(
     habits,
@@ -146,14 +146,14 @@ export default function Dashboard() {
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 system-panel px-6 py-3 shadow-[0_0_30px_rgba(56,189,248,0.6)] text-center">
           <p className="system-panel-header mb-1">System Alert</p>
           <p className="text-white font-semibold">
-            🎉 Level Up! You're now Level {levelUpValue}
+            ?? Level Up! You're now Level {levelUpValue}
           </p>
         </div>
       )}
 
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
       <p className="text-slate-400 mb-2">
-        {getMonthName(month)} {year} · {todayISO()}
+        {getMonthName(month)} {year} � {todayISO()}
       </p>
       <p className="text-blue-400/90 text-sm font-mono mb-6">&gt; {systemMessage}</p>
 
@@ -168,8 +168,12 @@ export default function Dashboard() {
         equippedTitle={achievements.find((a) => a.id === settings.equippedTitle)?.title ?? null}
       />
 
-      <TodayView />
-      
+      <TodayView
+        habits={habits}
+        isCompleted={isCompleted}
+        toggleCompletion={toggleCompletion}
+      />
+
       <StatAllocationPanel stats={statAllocations} />
 
       <div className="system-panel p-4 mb-6">
@@ -191,7 +195,7 @@ export default function Dashboard() {
         <div className="system-panel p-4">
           <p className="system-panel-header mb-3">Top Habits</p>
           {bestHabit ? (
-            <p className="text-slate-300 text-sm">🥇 {bestHabit.name}</p>
+            <p className="text-slate-300 text-sm">?? {bestHabit.name}</p>
           ) : (
             <p className="text-slate-500 text-sm">Not enough data yet.</p>
           )}
@@ -213,7 +217,7 @@ export default function Dashboard() {
             <div className="flex flex-col gap-1">
               {recentAchievements.map((a) => (
                 <p key={a.id} className="text-slate-300 text-xs">
-                  🏆 {a.name}
+                  ?? {a.name}
                 </p>
               ))}
             </div>
@@ -221,7 +225,14 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <HabitGrid year={year} month={month} onComplete={handleQuestComplete} />
+      <HabitGrid
+        year={year}
+        month={month}
+        habits={habits}
+        isCompleted={isCompleted}
+        toggleCompletion={toggleCompletion}
+        onComplete={handleQuestComplete}
+      />
     </div>
   )
 }

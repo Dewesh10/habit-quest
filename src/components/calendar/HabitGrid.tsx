@@ -1,8 +1,7 @@
 import { icons } from "lucide-react"
-import { useHabits } from "../../hooks/useHabits"
-import { useCompletions } from "../../hooks/useCompletions"
 import { getHabitColorClasses } from "../../utils/colorMap"
 import { getMonthDates, isScheduledOn, todayISO } from "../../utils/date"
+import type { Habit } from "../../types"
 
 function HabitIcon({ name, className }: { name: string; className?: string }) {
   const Icon = icons[name as keyof typeof icons]
@@ -13,17 +12,20 @@ function HabitIcon({ name, className }: { name: string; className?: string }) {
 interface HabitGridProps {
   year: number
   month: number // 0-indexed
+  habits: Habit[]
+  isCompleted: (habitId: string, dateISO: string) => boolean
+  toggleCompletion: (habitId: string, dateISO: string) => void
   onComplete?: (habitName: string, xp: number) => void
 }
 
-export default function HabitGrid({ year, month, onComplete }: HabitGridProps) {
-  const { habits, loaded: habitsLoaded } = useHabits()
-  const { isCompleted, toggleCompletion, loaded: completionsLoaded } = useCompletions()
-
-  if (!habitsLoaded || !completionsLoaded) {
-    return <p className="text-slate-400">Loading grid...</p>
-  }
-
+export default function HabitGrid({
+  year,
+  month,
+  habits,
+  isCompleted,
+  toggleCompletion,
+  onComplete,
+}: HabitGridProps) {
   const activeHabits = habits.filter((h) => !h.archived)
   const dates = getMonthDates(year, month)
   const today = todayISO()
@@ -36,7 +38,7 @@ export default function HabitGrid({ year, month, onComplete }: HabitGridProps) {
     )
   }
 
-  function handleToggle(habit: (typeof activeHabits)[number], dateISO: string) {
+  function handleToggle(habit: Habit, dateISO: string) {
     const wasCompleted = isCompleted(habit.id, dateISO)
     toggleCompletion(habit.id, dateISO)
     if (!wasCompleted && onComplete) {

@@ -1,8 +1,7 @@
 import { icons } from "lucide-react"
-import { useHabits } from "../../hooks/useHabits"
-import { useCompletions } from "../../hooks/useCompletions"
 import { isScheduledOn, todayISO } from "../../utils/date"
 import { getHabitColorClasses } from "../../utils/colorMap"
+import type { Habit } from "../../types"
 
 function HabitIcon({ name, className }: { name: string; className?: string }) {
   const Icon = icons[name as keyof typeof icons]
@@ -10,13 +9,13 @@ function HabitIcon({ name, className }: { name: string; className?: string }) {
   return <Icon className={className} />
 }
 
-export default function TodayView() {
-  const { habits, loaded: habitsLoaded } = useHabits()
-  const { isCompleted, toggleCompletion, loaded: completionsLoaded } =
-    useCompletions()
+interface TodayViewProps {
+  habits: Habit[]
+  isCompleted: (habitId: string, dateISO: string) => boolean
+  toggleCompletion: (habitId: string, dateISO: string) => void
+}
 
-  if (!habitsLoaded || !completionsLoaded) return null
-
+export default function TodayView({ habits, isCompleted, toggleCompletion }: TodayViewProps) {
   const today = todayISO()
   const todaysHabits = habits.filter(
     (h) => !h.archived && isScheduledOn(h.frequency, today)
@@ -50,7 +49,7 @@ export default function TodayView() {
               onClick={() => toggleCompletion(habit.id, today)}
               className={`flex items-center gap-3 p-2.5 rounded-lg border text-left transition-colors ${
                 done
-                  ? "bg-blue -500/10 border-blue -800"
+                  ? "bg-blue-500/10 border-blue-800"
                   : "bg-slate-800/50 border-slate-800"
               }`}
             >
@@ -63,11 +62,11 @@ export default function TodayView() {
               <div
                 className={`w-5 h-5 rounded-md border flex items-center justify-center ${
                   done
-                    ? "bg-blue -500 border-blue -500"
+                    ? "bg-blue-500 border-blue-500"
                     : "border-slate-600"
                 }`}
               >
-                {done && <span className="text-slate-950 text-xs">✓</span>}
+                {done && <span className="text-slate-950 text-xs">?</span>}
               </div>
             </button>
           )
