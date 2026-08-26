@@ -13,9 +13,10 @@ function HabitIcon({ name, className }: { name: string; className?: string }) {
 interface HabitGridProps {
   year: number
   month: number // 0-indexed
+  onComplete?: (habitName: string, xp: number) => void
 }
 
-export default function HabitGrid({ year, month }: HabitGridProps) {
+export default function HabitGrid({ year, month, onComplete }: HabitGridProps) {
   const { habits, loaded: habitsLoaded } = useHabits()
   const { isCompleted, toggleCompletion, loaded: completionsLoaded } = useCompletions()
 
@@ -35,13 +36,21 @@ export default function HabitGrid({ year, month }: HabitGridProps) {
     )
   }
 
+  function handleToggle(habit: (typeof activeHabits)[number], dateISO: string) {
+    const wasCompleted = isCompleted(habit.id, dateISO)
+    toggleCompletion(habit.id, dateISO)
+    if (!wasCompleted && onComplete) {
+      onComplete(habit.name, habit.xpValue)
+    }
+  }
+
   return (
-    <div className="overflow-x-auto bg-slate-900 border border-slate-800 rounded-xl">
+    <div className="system-panel overflow-x-auto">
       <table className="border-collapse w-full">
         <thead>
           <tr>
-            <th className="sticky left-0 bg-slate-900 text-left text-xs text-slate-400 font-medium px-3 py-2 min-w-[140px] z-10">
-              Habit
+            <th className="sticky left-0 bg-slate-900 text-left system-panel-header px-3 py-2 min-w-[140px] z-10">
+              Quest
             </th>
             {dates.map((dateISO) => {
               const day = Number(dateISO.slice(-2))
@@ -49,8 +58,8 @@ export default function HabitGrid({ year, month }: HabitGridProps) {
               return (
                 <th
                   key={dateISO}
-                  className={`text-xs font-medium px-1.5 py-2 min-w-[28px] ${
-                    isToday ? "text-emerald-400" : "text-slate-500"
+                  className={`text-xs font-mono px-1.5 py-2 min-w-[28px] ${
+                    isToday ? "text-blue-400" : "text-slate-500"
                   }`}
                 >
                   {day}
@@ -63,7 +72,7 @@ export default function HabitGrid({ year, month }: HabitGridProps) {
           {activeHabits.map((habit) => {
             const colors = getHabitColorClasses(habit.color)
             return (
-              <tr key={habit.id} className="border-t border-slate-800">
+              <tr key={habit.id} className="border-t border-blue-900/20">
                 <td className="sticky left-0 bg-slate-900 px-3 py-2 z-10">
                   <div className="flex items-center gap-2">
                     <HabitIcon name={habit.icon} className={`w-4 h-4 ${colors.text}`} />
@@ -85,11 +94,13 @@ export default function HabitGrid({ year, month }: HabitGridProps) {
                   return (
                     <td key={dateISO} className="text-center px-1.5 py-2">
                       <button
-                        onClick={() => toggleCompletion(habit.id, dateISO)}
+                        onClick={() => handleToggle(habit, dateISO)}
                         className={`w-5 h-5 mx-auto rounded border-2 transition-colors ${
+                          completed ? "check-pop" : ""
+                        } ${
                           completed
-                            ? "bg-emerald-500 border-emerald-500"
-                            : "border-slate-600 hover:border-slate-500"
+                            ? "bg-blue-500 border-blue-400 shadow-[0_0_8px_rgba(56,189,248,0.7)]"
+                            : "border-slate-600 hover:border-blue-500"
                         }`}
                         aria-label={`Toggle ${habit.name} for ${dateISO}`}
                       />

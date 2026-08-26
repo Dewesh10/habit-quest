@@ -2,18 +2,34 @@ import type { Habit, Completion } from "../types"
 import { isScheduledOn, toISODate } from "./date"
 
 export interface DailyChartPoint {
-  date: string       // ISO date
-  label: string       // short day label, e.g. "24"
+  date: string
+  label: string
   completed: number
   total: number
   percent: number
 }
 
 export interface WeeklyChartPoint {
-  label: string       // "Week 1", "Week 2", ...
+  label: string
   completed: number
   total: number
   percent: number
+}
+
+export interface CategoryChartPoint {
+  category: string
+  percent: number
+}
+
+export interface HabitComparisonPoint {
+  name: string
+  percent: number
+}
+
+export interface XPProgressionPoint {
+  date: string
+  label: string
+  xp: number
 }
 
 function statsForDate(
@@ -55,8 +71,6 @@ export function buildWeeklyChartData(
   completions: Completion[],
   monthDates: string[]
 ): WeeklyChartPoint[] {
-  // Group the month's dates into calendar weeks (chunks of up to 7),
-  // starting from the first date. Handles months that start/end mid-week.
   const weeks: string[][] = []
   let currentWeek: string[] = []
 
@@ -80,6 +94,83 @@ export function buildWeeklyChartData(
     }
     const percent = total === 0 ? 0 : Math.round((completed / total) * 100)
     return { label: `Week ${i + 1}`, completed, total, percent }
+  })
+}
+
+export function buildCategoryChartData(
+  habits: Habit[],
+  completions: Completion[],
+  monthDates: string[]
+): CategoryChartPoint[] {
+  const byCategory = new Map<string, { completed: number; total: number }>()
+
+  for (const habit of habits) {
+    if (habit.archived) continue
+    const bucket = byCategory.get(habit.category) ?? { completed: 0, total: 0 }
+
+    for (const dateISO of monthDates) {
+      if (!isScheduledOn(habit.frequency, dateISO)) continue
+      bucket.total++
+      const record = completions.find(
+        (c) => c.habitId === habit.id && c.date === dateISO
+      )
+      if (record?.completed) bucket.completed++
+    }
+
+    byCategory.set(habit.category, bucket)
+  }
+
+  return Array.from(byCategory.entries())
+    .map(([category, { completed, total }]) => ({
+      category,
+      percent: total === 0 ? 0 : Math.round((completed / total) * 100),
+    }))
+    .sort((a, b) => b.percent - a.percent)
+}
+
+export function buildHabitComparisonData(
+  habits: Habit[],
+  completions: Completion[],
+  monthDates: string[]
+): HabitComparisonPoint[] {
+  return habits
+    .filter((h) => !h.archived)
+    .map((habit) => {
+      let completed = 0
+      let total = 0
+      for (const dateISO of monthDates) {
+        if (!isScheduledOn(habit.frequency, dateISO)) continue
+        total++
+        const record = completions.find(
+          (c) => c.habitId === habit.id && c.date === dateISO
+        )
+        if (record?.completed) completed++
+      }
+      return {
+        name: habit.name,
+        percent: total === 0 ? 0 : Math.round((completed / total) * 100),
+      }
+    })
+    .sort((a, b) => b.percent - a.percent)
+}
+
+export function buildXPProgressionData(
+  habits: Habit[],
+  completions: Completion[],
+  monthDates: string[]
+): XPProgressionPoint[] {
+  let cumulativeXP = 0
+
+  return monthDates.map((dateISO) => {
+    const dayCompletions = completions.filter(
+      (c) => c.date === dateISO && c.completed
+    )
+    for (const c of dayCompletions) {
+      const habit = habits.find((h) => h.id === c.habitId)
+      if (habit) cumulativeXP += habit.xpValue
+    }
+    const day = Number(dateISO.slice(-2))
+    return { date: dateISO, label: String(day), xp: cumulativeXP }
   })
 }
 

@@ -3,7 +3,7 @@ import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { useSettings } from "../../hooks/useSettings"
 import { useAchievements } from "../../hooks/useAchievements"
-import { getMonthDates, getMonthName, todayISO } from "../../utils/date"
+import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
   calculateOverallCompletion,
   calculateTotalCompleted,
@@ -14,13 +14,20 @@ import {
   calculateBestHabit,
   calculateWorstHabit,
 } from "../../utils/stats"
+import { getSystemMessage } from "../../utils/systemMessage"
+import { playQuestCompleteSound, playLevelUpSound } from "../../utils/sound"
 import HabitGrid from "../../components/calendar/HabitGrid"
+import TodayView from "../../components/dashboard/TodayView"
+import StatusWindow from "../../components/dashboard/StatusWindow"
+import SystemNotification from "../../components/dashboard/SystemNotification"
+import StatAllocationPanel from "../../components/dashboard/StatAllocationPanel"
+import { buildStatAllocations } from "../../utils/statMap"
 
 export default function Dashboard() {
   const { habits, loaded: habitsLoaded } = useHabits()
   const { completions, loaded: completionsLoaded } = useCompletions()
   const { settings, loaded: settingsLoaded } = useSettings()
-  const { achievements, loaded: achievementsLoaded } = useAchievements(
+  const { achievements, loaded: achievementsLoaded, newlyUnlocked, clearNewlyUnlocked } = useAchievements(
     habits,
     completions
   )
@@ -28,6 +35,9 @@ export default function Dashboard() {
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [levelUpValue, setLevelUpValue] = useState(1)
   const prevLevel = useRef<number | null>(null)
+
+  const [questNotif, setQuestNotif] = useState<{ message: string; subtext: string } | null>(null)
+  const [questNotifVisible, setQuestNotifVisible] = useState(false)
 
   const allLoaded =
     habitsLoaded && completionsLoaded && settingsLoaded && achievementsLoaded
@@ -46,13 +56,38 @@ export default function Dashboard() {
     if (level > prevLevel.current) {
       setLevelUpValue(level)
       setShowLevelUp(true)
+      if (settings.soundEnabled) playLevelUpSound()
       const timer = setTimeout(() => setShowLevelUp(false), 3000)
       prevLevel.current = level
       return () => clearTimeout(timer)
     }
 
     prevLevel.current = level
-  }, [level, allLoaded])
+  }, [level, allLoaded, settings.soundEnabled])
+
+  useEffect(() => {
+    if (!newlyUnlocked) return
+    setQuestNotif({
+      message: `Achievement Unlocked: ${newlyUnlocked.name}`,
+      subtext: newlyUnlocked.description,
+    })
+    setQuestNotifVisible(true)
+    const timer = setTimeout(() => {
+      setQuestNotifVisible(false)
+      clearNewlyUnlocked()
+    }, 2800)
+    return () => clearTimeout(timer)
+  }, [newlyUnlocked])
+
+  function handleQuestComplete(habitName: string, xpGained: number) {
+    setQuestNotif({
+      message: `Quest Complete: ${habitName}`,
+      subtext: `+${xpGained} XP gained`,
+    })
+    setQuestNotifVisible(true)
+    if (settings.soundEnabled) playQuestCompleteSound()
+    setTimeout(() => setQuestNotifVisible(false), 2200)
+  }
 
   if (!allLoaded) {
     return <p className="text-slate-400">Loading...</p>
@@ -68,8 +103,26 @@ export default function Dashboard() {
   const remaining = calculateRemaining(habits, completions, monthDates)
   const currentStreak = calculateCurrentStreak(habits, completions)
 
+  const todayISOStr = todayISO()
+  const todaysHabits = habits.filter((h) => !h.archived && isScheduledOn(h.frequency, todayISOStr))
+  const todaysDone = todaysHabits.filter((h) =>
+    completions.some((c) => c.habitId === h.id && c.date === todayISOStr && c.completed)
+  ).length
+  const systemMessage = getSystemMessage(currentStreak, todaysDone, todaysHabits.length)
+
   const bestHabit = calculateBestHabit(habits, completions, monthDates)
   const worstHabit = calculateWorstHabit(habits, completions, monthDates)
+  const completedCountByCategory = new Map<string, number>()
+  for (const c of completions) {
+    if (!c.completed) continue
+    const habit = habits.find((h) => h.id === c.habitId)
+    if (!habit) continue
+    completedCountByCategory.set(
+      habit.category,
+      (completedCountByCategory.get(habit.category) ?? 0) + 1
+    )
+  }
+  const statAllocations = buildStatAllocations(habits, completedCountByCategory)
 
   const goal = settings.monthlyGoal
   const goalProgress = goal > 0 ? Math.min(100, Math.round((totalCompleted / goal) * 100)) : 0
@@ -79,82 +132,65 @@ export default function Dashboard() {
     .sort((a, b) => (b.unlockedAt! > a.unlockedAt! ? 1 : -1))
     .slice(0, 3)
 
-  const stats = [
-    { label: "Overall Completion", value: `${overallCompletion}%` },
-    { label: "Completed", value: totalCompleted },
-    { label: "Remaining", value: remaining },
-    { label: "Current Streak", value: `${currentStreak} days` },
-    { label: "XP", value: xp.toLocaleString() },
-    { label: "Level", value: level },
-  ]
-
   return (
     <div>
+      {questNotif && (
+        <SystemNotification
+          message={questNotif.message}
+          subtext={questNotif.subtext}
+          visible={questNotifVisible}
+        />
+      )}
+
       {showLevelUp && (
-        <div className="fixed top-6 right-6 z-50 bg-emerald-500 text-slate-950 font-semibold px-5 py-3 rounded-xl shadow-lg animate-pulse">
-          🎉 Level Up! You're now Level {levelUpValue}
+        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 system-panel px-6 py-3 shadow-[0_0_30px_rgba(56,189,248,0.6)] text-center">
+          <p className="system-panel-header mb-1">System Alert</p>
+          <p className="text-white font-semibold">
+            🎉 Level Up! You're now Level {levelUpValue}
+          </p>
         </div>
       )}
 
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
-      <p className="text-slate-400 mb-6">
+      <p className="text-slate-400 mb-2">
         {getMonthName(month)} {year} · {todayISO()}
       </p>
+      <p className="text-blue-400/90 text-sm font-mono mb-6">&gt; {systemMessage}</p>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            className="bg-slate-900 border border-slate-800 rounded-xl p-4"
-          >
-            <p className="text-xs text-slate-400 mb-1">{s.label}</p>
-            <p className="text-xl font-semibold text-white">{s.value}</p>
-          </div>
-        ))}
-      </div>
+      <StatusWindow
+        level={level}
+        xp={xp}
+        currentLevelXP={currentLevelXP}
+        nextLevelXP={nextLevelXP}
+        overallCompletion={overallCompletion}
+        currentStreak={currentStreak}
+        totalCompleted={totalCompleted}
+      />
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6">
+      <TodayView />
+      
+      <StatAllocationPanel stats={statAllocations} />
+
+      <div className="system-panel p-4 mb-6">
         <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-white">Level {level}</span>
-          <span className="text-xs text-slate-400">
-            {xp - currentLevelXP} / {nextLevelXP - currentLevelXP} XP
-          </span>
-        </div>
-        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-emerald-500"
-            style={{
-              width: `${Math.min(
-                100,
-                ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100
-              )}%`,
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="text-sm text-white">Monthly Goal</span>
-          <span className="text-xs text-slate-400">
+          <span className="system-panel-header">Monthly Goal</span>
+          <span className="text-xs text-slate-400 font-mono">
             {totalCompleted} / {goal} ({goalProgress}%)
           </span>
         </div>
         <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
           <div
-            className="h-full bg-sky-500"
-            style={{ width: `${goalProgress}%` }}
+            className="h-full bg-gradient-to-r from-blue-600 to-cyan-400"
+            style={{ width: `${goalProgress}%`, boxShadow: "0 0 8px rgba(56,189,248,0.7)" }}
           />
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-sm text-white mb-3">Top Habits</p>
+        <div className="system-panel p-4">
+          <p className="system-panel-header mb-3">Top Habits</p>
           {bestHabit ? (
-            <p className="text-slate-300 text-sm">
-              🥇 {bestHabit.name}
-            </p>
+            <p className="text-slate-300 text-sm">🥇 {bestHabit.name}</p>
           ) : (
             <p className="text-slate-500 text-sm">Not enough data yet.</p>
           )}
@@ -163,10 +199,11 @@ export default function Dashboard() {
               Needs attention: {worstHabit.name}
             </p>
           )}
+          <p className="text-slate-500 text-xs mt-2">Remaining this month: {remaining}</p>
         </div>
 
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4">
-          <p className="text-sm text-white mb-3">Recent Achievements</p>
+        <div className="system-panel p-4">
+          <p className="system-panel-header mb-3">Recent Achievements</p>
           {recentAchievements.length === 0 ? (
             <p className="text-slate-500 text-sm">
               Complete habits to unlock achievements.
@@ -183,7 +220,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <HabitGrid year={year} month={month} />
+      <HabitGrid year={year} month={month} onComplete={handleQuestComplete} />
     </div>
   )
 }

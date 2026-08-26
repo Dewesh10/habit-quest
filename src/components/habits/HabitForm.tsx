@@ -32,7 +32,7 @@ function makeId(name: string): string {
 export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProps) {
   const [name, setName] = useState(initial?.name ?? "")
   const [category, setCategory] = useState<HabitCategory>(initial?.category ?? "Personal")
-  const [color, setColor] = useState(initial?.color ?? "emerald")
+  const [color, setColor] = useState(initial?.color ?? "blue ")
   const [icon, setIcon] = useState(initial?.icon ?? "Target")
   const [xpValue, setXpValue] = useState(initial?.xpValue ?? 10)
   const [freqType, setFreqType] = useState<"daily" | "specific">(
@@ -79,7 +79,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Meditate"
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue -500"
         />
       </div>
 
@@ -89,7 +89,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as HabitCategory)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue -500"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -103,7 +103,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
             min={1}
             value={xpValue}
             onChange={(e) => setXpValue(Number(e.target.value))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-emerald-500"
+            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue -500"
           />
         </div>
       </div>
@@ -118,7 +118,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
               onClick={() => setIcon(i)}
               className={`px-2 py-1 rounded-md text-xs border ${
                 icon === i
-                  ? "border-emerald-500 text-emerald-400"
+                  ? "border-blue -500 text-blue -400"
                   : "border-slate-700 text-slate-400"
               }`}
             >
@@ -153,7 +153,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
             onClick={() => setFreqType("daily")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               freqType === "daily"
-                ? "bg-emerald-500/10 text-emerald-400"
+                ? "bg-blue -500/10 text-blue -400"
                 : "bg-slate-800 text-slate-400"
             }`}
           >
@@ -164,7 +164,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
             onClick={() => setFreqType("specific")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               freqType === "specific"
-                ? "bg-emerald-500/10 text-emerald-400"
+                ? "bg-blue -500/10 text-blue -400"
                 : "bg-slate-800 text-slate-400"
             }`}
           >
@@ -180,7 +180,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
                 onClick={() => toggleDay(idx)}
                 className={`w-8 h-8 rounded-full text-xs font-medium ${
                   days.includes(idx)
-                    ? "bg-emerald-500 text-slate-950"
+                    ? "bg-blue -500 text-slate-950"
                     : "bg-slate-800 text-slate-400"
                 }`}
               >
@@ -201,7 +201,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
         </button>
         <button
           type="submit"
-          className="flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-semibold py-2 rounded-lg transition-colors"
+          className="flex-1 bg-blue -500 hover:bg-blue -400 text-slate-950 text-sm font-semibold py-2 rounded-lg transition-colors"
         >
           {initial ? "Save Changes" : "Create Habit"}
         </button>

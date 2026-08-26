@@ -73,8 +73,9 @@ export default function Settings() {
     <div className="max-w-xl">
       <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4">
-        <label className="block text-sm text-white mb-2">Theme</label>
+      <div className="system-panel p-4 mb-4">
+        <div className="system-panel-scan" style={{ top: 0 }} />
+        <label className="system-panel-header block mb-2">Theme</label>
         <div className="flex gap-2">
           {(["dark", "light", "system"] as const).map((t) => (
             <button
@@ -82,7 +83,7 @@ export default function Settings() {
               onClick={() => updateSettings({ theme: t })}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize ${
                 settings.theme === t
-                  ? "bg-emerald-500 text-slate-950"
+                  ? "bg-blue-500 text-slate-950"
                   : "bg-slate-800 text-slate-300"
               }`}
             >
@@ -92,14 +93,14 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4">
-        <label className="block text-sm text-white mb-2">Week starts on</label>
+      <div className="system-panel p-4 mb-4">
+        <label className="system-panel-header block mb-2">Week starts on</label>
         <div className="flex gap-2">
           <button
             onClick={() => updateSettings({ weekStartsOn: 0 })}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               settings.weekStartsOn === 0
-                ? "bg-emerald-500 text-slate-950"
+                ? "bg-blue-500 text-slate-950"
                 : "bg-slate-800 text-slate-300"
             }`}
           >
@@ -109,7 +110,7 @@ export default function Settings() {
             onClick={() => updateSettings({ weekStartsOn: 1 })}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               settings.weekStartsOn === 1
-                ? "bg-emerald-500 text-slate-950"
+                ? "bg-blue-500 text-slate-950"
                 : "bg-slate-800 text-slate-300"
             }`}
           >
@@ -118,8 +119,8 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4">
-        <label className="block text-sm text-white mb-2">
+      <div className="system-panel p-4 mb-4">
+        <label className="system-panel-header block mb-2">
           Default XP per habit
         </label>
         <input
@@ -129,12 +130,12 @@ export default function Settings() {
           onChange={(e) =>
             updateSettings({ defaultXP: Number(e.target.value) || 1 })
           }
-          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white w-24"
+          className="bg-slate-800 border border-blue-900/50 rounded-lg px-3 py-1.5 text-sm text-white w-24 font-mono"
         />
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4">
-        <label className="block text-sm text-white mb-2">Monthly goal</label>
+      <div className="system-panel p-4 mb-4">
+        <label className="system-panel-header block mb-2">Monthly goal</label>
         <input
           type="number"
           min={1}
@@ -142,36 +143,38 @@ export default function Settings() {
           onChange={(e) =>
             updateSettings({ monthlyGoal: Number(e.target.value) || 1 })
           }
-          className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white w-24"
+          className="bg-slate-800 border border-blue-900/50 rounded-lg px-3 py-1.5 text-sm text-white w-24 font-mono"
         />
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4 flex items-center justify-between">
-        <label className="text-sm text-white">Sound effects</label>
+      <div className="system-panel p-4 mb-4 flex items-center justify-between">
+        <label className="system-panel-header">Sound effects</label>
         <button
           onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
-          className={`w-11 h-6 rounded-full transition-colors relative ${
-            settings.soundEnabled ? "bg-emerald-500" : "bg-slate-700"
+          className={`w-11 h-6 rounded-full relative border transition-colors ${
+            settings.soundEnabled
+              ? "bg-blue-500 border-blue-400"
+              : "bg-slate-800 border-slate-700"
           }`}
         >
           <span
-            className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-              settings.soundEnabled ? "translate-x-5" : "translate-x-0.5"
+            className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${
+              settings.soundEnabled ? "left-5.5" : "left-0.5"
             }`}
           />
         </button>
       </div>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 mb-4">
-        <p className="text-sm text-white mb-3">Data management</p>
+      <div className="system-panel p-4 mb-4">
+        <p className="system-panel-header mb-3">Data management</p>
         <div className="flex gap-2">
           <button
             onClick={handleExport}
-            className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg"
+            className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg border border-blue-900/40"
           >
             Export data
           </button>
-          <label className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer">
+          <label className="bg-slate-800 hover:bg-slate-700 text-white text-xs font-medium px-3 py-1.5 rounded-lg cursor-pointer border border-blue-900/40">
             Import data
             <input
               type="file"
@@ -183,12 +186,12 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="bg-slate-900 border border-red-900/50 rounded-xl p-4">
-        <p className="text-sm text-red-400 mb-3">Danger zone</p>
+      <div className="system-panel p-4">
+        <p className="system-panel-header mb-3 text-red-400">Danger zone</p>
         {!showResetBox ? (
           <button
             onClick={() => setShowResetBox(true)}
-            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg"
+            className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-medium px-3 py-1.5 rounded-lg border border-red-900/40"
           >
             Reset all data
           </button>
@@ -203,7 +206,7 @@ export default function Settings() {
                 type="text"
                 value={resetConfirm}
                 onChange={(e) => setResetConfirm(e.target.value)}
-                className="bg-slate-800 border border-slate-700 rounded-lg px-3 py-1.5 text-sm text-white"
+                className="bg-slate-800 border border-red-900/50 rounded-lg px-3 py-1.5 text-sm text-white font-mono"
               />
               <button
                 onClick={handleReset}

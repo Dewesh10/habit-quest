@@ -17,7 +17,7 @@ export interface Habit {
   icon: string          // lucide-react icon name
   category: HabitCategory
   description?: string
-  color: string          // tailwind color token, e.g. 'emerald'
+  color: string          // tailwind color token, e.g. 'blue '
   frequency: Frequency
   targetPerWeek?: number
   xpValue: number

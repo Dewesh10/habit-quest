@@ -3,6 +3,7 @@ import { icons } from "lucide-react"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getHabitColorClasses } from "../../utils/colorMap"
+import { getDifficulty } from "../../utils/difficulty"
 import Modal from "../../components/common/Modal"
 import HabitForm from "../../components/habits/HabitForm"
 import type { Habit } from "../../types"
@@ -60,7 +61,7 @@ export default function Habits() {
   }
 
   if (!loaded || !completionsLoaded) {
-    return <p className="text-slate-400">Loading habits...</p>
+    return <p className="text-slate-400">Loading quests...</p>
   }
 
   const currentStreak = calculateCurrentStreak(habits, completions)
@@ -69,26 +70,29 @@ export default function Habits() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Habits</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-white">Quest Log</h1>
+          <p className="text-slate-500 text-sm mt-0.5">Your active daily quests</p>
+        </div>
         <button
           onClick={openAddModal}
-          className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors"
+          className="bg-blue-500 hover:bg-blue-400 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors shadow-[0_0_16px_rgba(56,189,248,0.4)]"
         >
-          + Add Habit
+          + New Quest
         </button>
       </div>
 
       {activeHabits.length > 0 && (
         <div className="flex gap-4 mb-6">
-          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex-1">
-            <p className="text-xs text-slate-400 mb-1">Current Streak</p>
-            <p className="text-lg font-semibold text-white">
+          <div className="system-panel px-4 py-3 flex-1">
+            <p className="system-panel-header mb-1">Current Streak</p>
+            <p className="text-lg font-semibold text-white font-mono">
               🔥 {currentStreak} days
             </p>
           </div>
-          <div className="bg-slate-900 border border-slate-800 rounded-xl px-4 py-3 flex-1">
-            <p className="text-xs text-slate-400 mb-1">Longest Streak</p>
-            <p className="text-lg font-semibold text-white">
+          <div className="system-panel px-4 py-3 flex-1">
+            <p className="system-panel-header mb-1">Longest Streak</p>
+            <p className="text-lg font-semibold text-white font-mono">
               🏆 {longestStreak} days
             </p>
           </div>
@@ -98,12 +102,12 @@ export default function Habits() {
       {activeHabits.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-slate-400 text-lg mb-2">Your journey starts here.</p>
-          <p className="text-slate-500 text-sm mb-4">Create your first habit to begin earning XP.</p>
+          <p className="text-slate-500 text-sm mb-4">Create your first quest to begin earning XP.</p>
           <button
             onClick={openAddModal}
-            className="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors"
+            className="bg-blue-500 hover:bg-blue-400 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors"
           >
-            + Create Habit
+            + Create Quest
           </button>
         </div>
       ) : (
@@ -111,24 +115,32 @@ export default function Habits() {
           {activeHabits.map((habit) => {
             const colors = getHabitColorClasses(habit.color)
             const habitStreak = calculateHabitStreak(habit, completions)
+            const difficulty = getDifficulty(habit.xpValue)
             return (
               <button
                 key={habit.id}
                 onClick={() => openEditModal(habit)}
-                className="text-left bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-xl p-4 flex flex-col gap-3 transition-colors"
+                className="system-panel card-hover text-left p-4 flex flex-col gap-3"
               >
-                <div className="flex items-center gap-3">
-                  <div className={`p-2 rounded-lg ${colors.bgSoft}`}>
-                    <HabitIcon name={habit.icon} className={`w-5 h-5 ${colors.text}`} />
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className={`p-2 rounded-lg ${colors.bgSoft}`}>
+                      <HabitIcon name={habit.icon} className={`w-5 h-5 ${colors.text}`} />
+                    </div>
+                    <div>
+                      <p className="text-white font-semibold">{habit.name}</p>
+                      <p className="text-slate-500 text-xs">{habit.category}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-white font-semibold">{habit.name}</p>
-                    <p className="text-slate-500 text-xs">{habit.category}</p>
-                  </div>
+                  <span
+                    className={`text-[0.6rem] font-medium uppercase tracking-wide px-2 py-0.5 rounded border ${difficulty.color}`}
+                  >
+                    {difficulty.label}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span>{frequencyLabel(habit)}</span>
-                  <span className="text-emerald-400 font-medium">+{habit.xpValue} XP</span>
+                  <span className="text-blue-400 font-mono font-medium">+{habit.xpValue} XP</span>
                 </div>
                 {habitStreak > 0 && (
                   <div className="text-xs text-orange-400 font-medium">
@@ -144,7 +156,7 @@ export default function Habits() {
       <Modal
         open={modalOpen}
         onClose={closeModal}
-        title={editingHabit ? "Edit Habit" : "New Habit"}
+        title={editingHabit ? "Edit Quest" : "New Quest"}
       >
         <HabitForm
           initial={editingHabit}
