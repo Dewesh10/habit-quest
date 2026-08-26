@@ -165,6 +165,7 @@ export default function Dashboard() {
         overallCompletion={overallCompletion}
         currentStreak={currentStreak}
         totalCompleted={totalCompleted}
+        equippedTitle={achievements.find((a) => a.id === settings.equippedTitle)?.title ?? null}
       />
 
       <TodayView />

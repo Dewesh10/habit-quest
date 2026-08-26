@@ -18,6 +18,7 @@ export interface Achievement {
   name: string
   description: string
   icon: string             // lucide-react icon name
+  title?: string            // flavor title unlocked alongside this achievement, e.g. "Iron Will"
   criteria: AchievementCriteria
   unlockedAt: string | null // ISO date, null = still locked
 }

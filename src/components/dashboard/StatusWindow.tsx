@@ -8,6 +8,7 @@ interface StatusWindowProps {
   overallCompletion: number
   currentStreak: number
   totalCompleted: number
+  equippedTitle?: string | null
 }
 
 function StatBar({
@@ -48,6 +49,7 @@ export default function StatusWindow({
   overallCompletion,
   currentStreak,
   totalCompleted,
+  equippedTitle,
 }: StatusWindowProps) {
   const { rank, title, nextRank, nextRankLevel } = getRank(level)
   const levelProgress = xp - currentLevelXP
@@ -60,6 +62,11 @@ export default function StatusWindow({
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="system-panel-header mb-1">Status Window</p>
+          {equippedTitle && (
+            <p className="text-[0.7rem] text-cyan-300/90 tracking-wide font-mono mb-0.5">
+              &laquo; {equippedTitle} &raquo;
+            </p>
+          )}
           <h2 className="text-xl font-bold text-white tracking-wide">{title}</h2>
           {nextRank && nextRankLevel && (
             <p className="text-[0.65rem] text-slate-500 mt-1">

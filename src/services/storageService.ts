@@ -50,6 +50,7 @@ export const storageService = {
       defaultXP: 10,
       soundEnabled: false,
       monthlyGoal: 300,
+      equippedTitle: null,
     })
   },
   saveSettings(settings: Settings): void {

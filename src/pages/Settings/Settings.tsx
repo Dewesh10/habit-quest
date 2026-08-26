@@ -1,15 +1,23 @@
 import { useState } from "react"
 import { useSettings } from "../../hooks/useSettings"
+import { useHabits } from "../../hooks/useHabits"
+import { useCompletions } from "../../hooks/useCompletions"
+import { useAchievements } from "../../hooks/useAchievements"
 import { storageService } from "../../services/storageService"
 
 export default function Settings() {
   const { settings, loaded, updateSettings } = useSettings()
+  const { habits } = useHabits()
+  const { completions } = useCompletions()
+  const { achievements } = useAchievements(habits, completions)
   const [resetConfirm, setResetConfirm] = useState("")
   const [showResetBox, setShowResetBox] = useState(false)
 
   if (!loaded) {
     return <p className="text-slate-400">Loading...</p>
   }
+
+  const unlockedTitles = achievements.filter((a) => a.unlockedAt && a.title)
 
   function handleExport() {
     const data = {
@@ -91,6 +99,41 @@ export default function Settings() {
             </button>
           ))}
         </div>
+      </div>
+
+      <div className="system-panel p-4 mb-4">
+        <label className="system-panel-header block mb-2">Title</label>
+        {unlockedTitles.length === 0 ? (
+          <p className="text-xs text-slate-500">
+            Unlock achievements to earn titles you can display.
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => updateSettings({ equippedTitle: null })}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                settings.equippedTitle === null
+                  ? "bg-blue-500 text-slate-950 border-blue-400"
+                  : "bg-slate-800 text-slate-300 border-blue-900/40"
+              }`}
+            >
+              None
+            </button>
+            {unlockedTitles.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => updateSettings({ equippedTitle: a.id })}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium border ${
+                  settings.equippedTitle === a.id
+                    ? "bg-blue-500 text-slate-950 border-blue-400"
+                    : "bg-slate-800 text-slate-300 border-blue-900/40"
+                }`}
+              >
+                {a.title}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="system-panel p-4 mb-4">

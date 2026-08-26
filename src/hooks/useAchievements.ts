@@ -38,7 +38,7 @@ export function useAchievements(habits: Habit[], completions: Completion[]) {
     // Seed any achievement defs that don't exist in storage yet.
     const seeded: Achievement[] = achievementDefs.map((def) => {
       const existing = stored.find((a) => a.id === def.id)
-      return existing ?? { ...def, unlockedAt: null }
+      return { ...def, unlockedAt: existing?.unlockedAt ?? null }
     })
     setAchievements(seeded)
     setLoaded(true)

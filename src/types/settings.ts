@@ -4,4 +4,5 @@ export interface Settings {
   defaultXP: number
   soundEnabled: boolean
   monthlyGoal: number
+  equippedTitle: string | null   // achievement id whose title is currently displayed
 }
