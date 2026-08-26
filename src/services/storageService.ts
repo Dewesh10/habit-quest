@@ -1,4 +1,4 @@
-import type { Habit, Completion, Settings, Achievement } from "../types"
+import type { Habit, Completion, Settings, Achievement, NotificationEntry } from "../types"
 
 const PREFIX = "habitQuest:v1:"
 
@@ -7,7 +7,10 @@ const KEYS = {
   completions: PREFIX + "completions",
   settings: PREFIX + "settings",
   achievements: PREFIX + "achievements",
+  notifications: PREFIX + "notifications",
 }
+
+const MAX_NOTIFICATIONS = 50
 
 function safeGet<T>(key: string, fallback: T): T {
   try {
@@ -62,5 +65,14 @@ export const storageService = {
   },
   saveAchievements(achievements: Achievement[]): void {
     safeSet(KEYS.achievements, achievements)
+  },
+
+  getNotifications(): NotificationEntry[] {
+    return safeGet<NotificationEntry[]>(KEYS.notifications, [])
+  },
+  saveNotifications(entries: NotificationEntry[]): void {
+    // Keep only the most recent MAX_NOTIFICATIONS to prevent unbounded growth.
+    const trimmed = entries.slice(-MAX_NOTIFICATIONS)
+    safeSet(KEYS.notifications, trimmed)
   },
 }

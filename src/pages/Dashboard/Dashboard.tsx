@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from "react"
+﻿import { useEffect, useRef, useState } from "react"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { useSettings } from "../../hooks/useSettings"
 import { useAchievements } from "../../hooks/useAchievements"
+import { useNotificationLog } from "../../hooks/useNotificationLog"
 import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
   calculateOverallCompletion,
@@ -21,6 +22,7 @@ import TodayView from "../../components/dashboard/TodayView"
 import StatusWindow from "../../components/dashboard/StatusWindow"
 import SystemNotification from "../../components/dashboard/SystemNotification"
 import StatAllocationPanel from "../../components/dashboard/StatAllocationPanel"
+import NotificationLogPanel from "../../components/dashboard/NotificationLogPanel"
 import { buildStatAllocations } from "../../utils/statMap"
 
 export default function Dashboard() {
@@ -31,6 +33,7 @@ export default function Dashboard() {
     habits,
     completions
   )
+  const { entries: logEntries, loaded: logLoaded, logEvent } = useNotificationLog()
 
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [levelUpValue, setLevelUpValue] = useState(1)
@@ -40,7 +43,7 @@ export default function Dashboard() {
   const [questNotifVisible, setQuestNotifVisible] = useState(false)
 
   const allLoaded =
-    habitsLoaded && completionsLoaded && settingsLoaded && achievementsLoaded
+    habitsLoaded && completionsLoaded && settingsLoaded && achievementsLoaded && logLoaded
 
   const xp = allLoaded ? calculateXP(habits, completions) : 0
   const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
@@ -57,12 +60,14 @@ export default function Dashboard() {
       setLevelUpValue(level)
       setShowLevelUp(true)
       if (settings.soundEnabled) playLevelUpSound()
+      logEvent("levelup", `Level Up! You're now Level ${level}`)
       const timer = setTimeout(() => setShowLevelUp(false), 3000)
       prevLevel.current = level
       return () => clearTimeout(timer)
     }
 
     prevLevel.current = level
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, allLoaded, settings.soundEnabled])
 
   useEffect(() => {
@@ -72,11 +77,13 @@ export default function Dashboard() {
       subtext: newlyUnlocked.description,
     })
     setQuestNotifVisible(true)
+    logEvent("achievement", `Achievement Unlocked: ${newlyUnlocked.name}`, newlyUnlocked.description)
     const timer = setTimeout(() => {
       setQuestNotifVisible(false)
       clearNewlyUnlocked()
     }, 2800)
     return () => clearTimeout(timer)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [newlyUnlocked])
 
   function handleQuestComplete(habitName: string, xpGained: number) {
@@ -86,6 +93,7 @@ export default function Dashboard() {
     })
     setQuestNotifVisible(true)
     if (settings.soundEnabled) playQuestCompleteSound()
+    logEvent("quest", `Quest Complete: ${habitName}`, `+${xpGained} XP gained`)
     setTimeout(() => setQuestNotifVisible(false), 2200)
   }
 
@@ -146,14 +154,14 @@ export default function Dashboard() {
         <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 system-panel px-6 py-3 shadow-[0_0_30px_rgba(56,189,248,0.6)] text-center">
           <p className="system-panel-header mb-1">System Alert</p>
           <p className="text-white font-semibold">
-            ?? Level Up! You're now Level {levelUpValue}
+            🎉 Level Up! You're now Level {levelUpValue}
           </p>
         </div>
       )}
 
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
       <p className="text-slate-400 mb-2">
-        {getMonthName(month)} {year} � {todayISO()}
+        {getMonthName(month)} {year} · {todayISO()}
       </p>
       <p className="text-blue-400/90 text-sm font-mono mb-6">&gt; {systemMessage}</p>
 
@@ -195,7 +203,7 @@ export default function Dashboard() {
         <div className="system-panel p-4">
           <p className="system-panel-header mb-3">Top Habits</p>
           {bestHabit ? (
-            <p className="text-slate-300 text-sm">?? {bestHabit.name}</p>
+            <p className="text-slate-300 text-sm">🥇 {bestHabit.name}</p>
           ) : (
             <p className="text-slate-500 text-sm">Not enough data yet.</p>
           )}
@@ -217,13 +225,15 @@ export default function Dashboard() {
             <div className="flex flex-col gap-1">
               {recentAchievements.map((a) => (
                 <p key={a.id} className="text-slate-300 text-xs">
-                  ?? {a.name}
+                  🏆 {a.name}
                 </p>
               ))}
             </div>
           )}
         </div>
       </div>
+
+      <NotificationLogPanel entries={logEntries} />
 
       <HabitGrid
         year={year}
@@ -236,3 +246,4 @@ export default function Dashboard() {
     </div>
   )
 }
+
