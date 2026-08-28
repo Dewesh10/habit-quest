@@ -6,6 +6,7 @@ import { getHabitColorClasses } from "../../utils/colorMap"
 import { getDifficulty } from "../../utils/difficulty"
 import Modal from "../../components/common/Modal"
 import HabitForm from "../../components/habits/HabitForm"
+import CornerBrackets from "../../components/common/CornerBrackets"
 import type { Habit } from "../../types"
 import {
   calculateHabitStreak,
@@ -71,7 +72,7 @@ export default function Habits() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-white">Quest Log</h1>
+          <h1 className="font-display text-2xl font-bold text-white uppercase tracking-wide">Quest Log</h1>
           <p className="text-slate-500 text-sm mt-0.5">Your active daily quests</p>
         </div>
         <button
@@ -84,16 +85,18 @@ export default function Habits() {
 
       {activeHabits.length > 0 && (
         <div className="flex gap-4 mb-6">
-          <div className="system-panel px-4 py-3 flex-1">
+          <div className="hero-panel relative px-5 py-4 flex-1">
+            <CornerBrackets />
             <p className="system-panel-header mb-1">Current Streak</p>
-            <p className="text-lg font-semibold text-white font-mono">
-              🔥 {currentStreak} days
+            <p className="font-display text-3xl font-bold text-white">
+              🔥 {currentStreak} <span className="text-lg text-slate-400 font-normal">days</span>
             </p>
           </div>
-          <div className="system-panel px-4 py-3 flex-1">
+          <div className="hero-panel relative px-5 py-4 flex-1">
+            <CornerBrackets />
             <p className="system-panel-header mb-1">Longest Streak</p>
-            <p className="text-lg font-semibold text-white font-mono">
-              🏆 {longestStreak} days
+            <p className="font-display text-3xl font-bold text-white">
+              🏆 {longestStreak} <span className="text-lg text-slate-400 font-normal">days</span>
             </p>
           </div>
         </div>
@@ -120,11 +123,12 @@ export default function Habits() {
               <button
                 key={habit.id}
                 onClick={() => openEditModal(habit)}
-                className="system-panel card-hover text-left p-4 flex flex-col gap-3"
+                className="system-panel card-hover relative text-left p-5 flex flex-col gap-3"
               >
+                <CornerBrackets />
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-lg ${colors.bgSoft}`}>
+                    <div className={`p-2.5 rounded-lg border border-blue-900/40 ${colors.bgSoft} shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]`}>
                       <HabitIcon name={habit.icon} className={`w-5 h-5 ${colors.text}`} />
                     </div>
                     <div>

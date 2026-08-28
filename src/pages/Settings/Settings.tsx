@@ -4,6 +4,7 @@ import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { useAchievements } from "../../hooks/useAchievements"
 import { storageService } from "../../services/storageService"
+import CornerBrackets from "../../components/common/CornerBrackets"
 
 export default function Settings() {
   const { settings, loaded, updateSettings } = useSettings()
@@ -79,9 +80,10 @@ export default function Settings() {
 
   return (
     <div className="max-w-xl">
-      <h1 className="text-2xl font-bold text-white mb-6">Settings</h1>
+      <h1 className="font-display text-2xl font-bold text-white mb-6 uppercase tracking-wide">Settings</h1>
 
-      <div className="system-panel p-4 mb-4">
+      <div className="system-panel relative p-4 mb-4">
+        <CornerBrackets />
         <div className="system-panel-scan" style={{ top: 0 }} />
         <label className="system-panel-header block mb-2">Theme</label>
         <div className="flex gap-2">
@@ -101,7 +103,8 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="system-panel p-4 mb-4">
+      <div className="system-panel relative p-4 mb-4">
+        <CornerBrackets />
         <label className="system-panel-header block mb-2">Title</label>
         {unlockedTitles.length === 0 ? (
           <p className="text-xs text-slate-500">
@@ -136,7 +139,8 @@ export default function Settings() {
         )}
       </div>
 
-      <div className="system-panel p-4 mb-4">
+      <div className="system-panel relative p-4 mb-4">
+        <CornerBrackets />
         <label className="system-panel-header block mb-2">Week starts on</label>
         <div className="flex gap-2">
           <button
@@ -162,7 +166,8 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="system-panel p-4 mb-4">
+      <div className="system-panel relative p-4 mb-4">
+        <CornerBrackets />
         <label className="system-panel-header block mb-2">
           Default XP per habit
         </label>
@@ -177,7 +182,8 @@ export default function Settings() {
         />
       </div>
 
-      <div className="system-panel p-4 mb-4">
+      <div className="system-panel relative p-4 mb-4">
+        <CornerBrackets />
         <label className="system-panel-header block mb-2">Monthly goal</label>
         <input
           type="number"
@@ -190,7 +196,8 @@ export default function Settings() {
         />
       </div>
 
-      <div className="system-panel p-4 mb-4 flex items-center justify-between">
+      <div className="system-panel relative p-4 mb-4 flex items-center justify-between">
+        <CornerBrackets />
         <label className="system-panel-header">Sound effects</label>
         <button
           onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
@@ -208,7 +215,8 @@ export default function Settings() {
         </button>
       </div>
 
-      <div className="system-panel p-4 mb-4">
+      <div className="system-panel relative p-4 mb-4">
+        <CornerBrackets />
         <p className="system-panel-header mb-3">Data management</p>
         <div className="flex gap-2">
           <button
@@ -229,7 +237,8 @@ export default function Settings() {
         </div>
       </div>
 
-      <div className="system-panel p-4">
+      <div className="system-panel relative p-4">
+        <CornerBrackets />
         <p className="system-panel-header mb-3 text-red-400">Danger zone</p>
         {!showResetBox ? (
           <button

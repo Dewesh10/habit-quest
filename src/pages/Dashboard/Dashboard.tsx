@@ -195,33 +195,51 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="system-panel p-4">
-          <p className="system-panel-header mb-3">Top Habits</p>
-          {bestHabit ? (
-            <p className="text-slate-300 text-sm">🥇 {bestHabit.name}</p>
-          ) : (
-            <p className="text-slate-500 text-sm">Not enough data yet.</p>
-          )}
-          {worstHabit && worstHabit.id !== bestHabit?.id && (
-            <p className="text-slate-500 text-xs mt-2">
-              Needs attention: {worstHabit.name}
-            </p>
-          )}
-          <p className="text-slate-500 text-xs mt-2">Remaining this month: {remaining}</p>
+        <div className="system-panel p-4 md:p-6">
+          <p className="system-panel-header mb-4">Performance Ranking</p>
+          <div className="space-y-3">
+            {bestHabit ? (
+              <div className="flex items-center gap-3 bg-blue-500/5 border border-blue-900/30 rounded-lg px-3 py-2.5">
+                <span className="text-xl">🥇</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-medium truncate">{bestHabit.name}</p>
+                  <p className="text-slate-500 text-xs">Top performer this month</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-slate-500 text-sm">Not enough data yet.</p>
+            )}
+            {worstHabit && worstHabit.id !== bestHabit?.id && (
+              <div className="flex items-center gap-3 bg-orange-500/5 border border-orange-900/30 rounded-lg px-3 py-2.5">
+                <span className="text-xl">⚠️</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-white text-sm font-medium truncate">{worstHabit.name}</p>
+                  <p className="text-slate-500 text-xs">Needs attention</p>
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="font-display text-slate-400 text-xs mt-4 pt-4 border-t border-blue-900/20">
+            {remaining} quests remaining this month
+          </p>
         </div>
 
-        <div className="system-panel p-4">
-          <p className="system-panel-header mb-3">Recent Achievements</p>
+        <div className="system-panel p-4 md:p-6">
+          <p className="system-panel-header mb-4">Recent Titles</p>
           {recentAchievements.length === 0 ? (
             <p className="text-slate-500 text-sm">
-              Complete habits to unlock achievements.
+              Complete quests to unlock titles.
             </p>
           ) : (
-            <div className="flex flex-col gap-1">
+            <div className="space-y-3">
               {recentAchievements.map((a) => (
-                <p key={a.id} className="text-slate-300 text-xs">
-                  🏆 {a.name}
-                </p>
+                <div
+                  key={a.id}
+                  className="flex items-center gap-3 bg-blue-500/5 border border-blue-900/30 rounded-lg px-3 py-2.5"
+                >
+                  <span className="text-xl">🏆</span>
+                  <p className="text-white text-sm font-medium truncate">{a.name}</p>
+                </div>
               ))}
             </div>
           )}

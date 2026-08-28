@@ -15,6 +15,7 @@
   Area,
 } from "recharts"
 import CalendarHeatmap from "../../components/analytics/CalendarHeatmap"
+import CornerBrackets from "../../components/common/CornerBrackets"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getMonthDates, getMonthName } from "../../utils/date"
@@ -65,19 +66,22 @@ function ChartCard({
   subtitle,
   children,
   className = "",
+  hero = false,
 }: {
   title: string
   subtitle?: string
   children: React.ReactNode
   className?: string
+  hero?: boolean
 }) {
   return (
     <div
-      className={`system-panel card-hover relative p-5 overflow-hidden ${className}`}
+      className={`${hero ? "hero-panel" : "system-panel card-hover"} relative p-5 md:p-6 overflow-hidden ${className}`}
     >
-      <div className="system-panel-scan" style={{ top: 0 }} />
+      <CornerBrackets />
+      {!hero && <div className="system-panel-scan" style={{ top: 0 }} />}
       <div className="mb-4">
-        <h2 className="system-panel-header">{title}</h2>
+        <h2 className={hero ? "system-panel-header text-blue-300/90" : "system-panel-header"}>{title}</h2>
         {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
       </div>
       {children}
@@ -106,7 +110,7 @@ export default function Analytics() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-1 tracking-tight">
+      <h1 className="font-display text-2xl font-bold text-white mb-1 uppercase tracking-wide">
         Analytics
       </h1>
       <p className="text-slate-500 mb-6 text-sm">
@@ -139,7 +143,7 @@ export default function Analytics() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="XP Progression" subtitle="Cumulative XP earned this month" className="lg:col-span-2">
+        <ChartCard title="XP Progression" subtitle="Cumulative XP earned this month" className="lg:col-span-2" hero>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={xpData}>
               <defs>
@@ -202,4 +206,3 @@ export default function Analytics() {
     </div>
   )
 }
-

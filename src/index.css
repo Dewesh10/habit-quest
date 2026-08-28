@@ -285,3 +285,39 @@ body {
 .route-fade-in {
   animation: route-fade-in 320ms ease-out;
 }
+.hero-panel {
+  position: relative;
+  background:
+    radial-gradient(ellipse at top left, rgba(56, 189, 248, 0.15), transparent 60%),
+    radial-gradient(ellipse at bottom right, rgba(99, 102, 241, 0.12), transparent 60%),
+    linear-gradient(160deg, #0c1526 0%, #060a14 55%, #030509 100%);
+  clip-path: polygon(
+    20px 0%, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0% 100%, 0% 20px
+  );
+  border: 1px solid rgba(56, 189, 248, 0.4);
+  box-shadow:
+    0 0 0 1px rgba(56, 189, 248, 0.1),
+    0 0 60px -12px rgba(56, 189, 248, 0.45),
+    0 20px 50px -20px rgba(0, 0, 0, 0.8),
+    inset 0 1px 0 rgba(56, 189, 248, 0.15);
+}
+
+.hero-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(45deg, rgba(56,189,248,0.02) 0px, rgba(56,189,248,0.02) 1px, transparent 1px, transparent 12px);
+  pointer-events: none;
+}
+
+.hero-panel::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, transparent, #38bdf8, transparent);
+  box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
+}

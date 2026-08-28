@@ -25,7 +25,9 @@ export default function Sidebar() {
 
   return (
     <aside className="hidden md:flex flex-col w-60 shrink-0 bg-slate-900 border-r border-blue-900/30 h-screen sticky top-0 px-4 py-6">
-      <h1 className="text-xl font-bold text-blue-400 mb-8 px-2 tracking-wide">Habit Quest</h1>
+      <h1 className="font-display text-xl font-bold text-blue-400 mb-8 px-2 tracking-wide uppercase">
+        Habit Quest
+      </h1>
 
       <nav className="flex flex-col gap-1">
         {navItems.map(({ to, label, icon: Icon }) => (
@@ -47,10 +49,22 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      <div className="mt-auto system-panel p-3">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="flex flex-col items-center justify-center w-10 h-10 rounded-full border-2 border-blue-400/60 bg-blue-500/10 shadow-[0_0_12px_rgba(56,189,248,0.5)] shrink-0">
-            <span className="text-sm font-bold text-blue-300 font-mono">{rank}</span>
+      <div className="mt-auto hero-panel p-4 relative">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="relative w-12 h-12 shrink-0">
+            <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
+              <polygon
+                points="50,4 93,27 93,73 50,96 7,73 7,27"
+                fill="rgba(56,189,248,0.1)"
+                stroke="#38bdf8"
+                strokeWidth="2"
+              />
+            </svg>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <span className="font-display text-lg font-bold text-blue-300 drop-shadow-[0_0_6px_rgba(56,189,248,0.8)]">
+                {rank}
+              </span>
+            </div>
           </div>
           <div className="min-w-0">
             <p className="text-white text-sm font-semibold truncate">{title}</p>

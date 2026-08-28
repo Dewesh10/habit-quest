@@ -3,6 +3,7 @@ import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { useAchievements } from "../../hooks/useAchievements"
 import { achievementDefs } from "../../data/achievementDefs"
+import CornerBrackets from "../../components/common/CornerBrackets"
 
 function AchievementIcon({ name, className }: { name: string; className?: string }) {
   const Icon = icons[name as keyof typeof icons]
@@ -38,7 +39,7 @@ export default function Achievements() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold text-white mb-1">Titles</h1>
+      <h1 className="font-display text-2xl font-bold text-white mb-1 uppercase tracking-wide">Titles</h1>
       <p className="text-slate-500 mb-6 text-sm">
         {unlockedCount} / {achievements.length} earned
       </p>
@@ -55,10 +56,13 @@ export default function Achievements() {
             return (
               <div
                 key={a.id}
-                className={`system-panel p-4 flex items-start gap-3 ${
+                className={`${
+                  unlocked && tier.label === "GOLD" ? "hero-panel" : "system-panel"
+                } relative p-4 flex items-start gap-3 ${
                   unlocked ? tier.glow : "opacity-50"
                 }`}
               >
+                <CornerBrackets />
                 <div
                   className={`p-2 rounded-lg border-2 ${
                     unlocked ? tier.ring : "border-slate-700"
