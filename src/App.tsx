@@ -10,6 +10,7 @@ import Settings from "./pages/Settings/Settings"
 import SystemBoot from "./components/common/SystemBoot"
 import AmbientBackground from "./components/common/AmbientBackground"
 import PageTransition from "./components/common/PageTransition"
+import { ToastProvider } from "./components/common/Toast"
 
 function App() {
   const [booted, setBooted] = useState(() => sessionStorage.getItem("hq-booted") === "true")
@@ -24,24 +25,26 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <AmbientBackground />
-      <div className="flex min-h-screen relative z-10">
-        <Sidebar />
-        <main className="flex-1 min-w-0 overflow-x-hidden p-6 pb-24 md:pb-6">
-          <PageTransition>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/habits" element={<Habits />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/achievements" element={<Achievements />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </PageTransition>
-        </main>
-        <BottomNav />
-      </div>
-    </BrowserRouter>
+    <ToastProvider>
+      <BrowserRouter>
+        <AmbientBackground />
+        <div className="flex min-h-screen relative z-10">
+          <Sidebar />
+          <main className="flex-1 min-w-0 overflow-x-hidden p-6 pb-24 md:pb-6">
+            <PageTransition>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/habits" element={<Habits />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/achievements" element={<Achievements />} />
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </PageTransition>
+          </main>
+          <BottomNav />
+        </div>
+      </BrowserRouter>
+    </ToastProvider>
   )
 }
 

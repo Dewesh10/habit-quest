@@ -16,6 +16,7 @@
 } from "recharts"
 import CalendarHeatmap from "../../components/analytics/CalendarHeatmap"
 import CornerBrackets from "../../components/common/CornerBrackets"
+import AnalyticsSkeleton from "../../components/analytics/AnalyticsSkeleton"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getMonthDates, getMonthName } from "../../utils/date"
@@ -94,7 +95,7 @@ export default function Analytics() {
   const { completions, loaded: completionsLoaded } = useCompletions()
 
   if (!habitsLoaded || !completionsLoaded) {
-    return <p className="text-slate-400">Loading...</p>
+    return <AnalyticsSkeleton />
   }
 
   const today = new Date()

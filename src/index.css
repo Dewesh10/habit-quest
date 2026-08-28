@@ -321,3 +321,50 @@ body {
   background: linear-gradient(180deg, transparent, #38bdf8, transparent);
   box-shadow: 0 0 12px rgba(56, 189, 248, 0.8);
 }
+
+@keyframes toast-in {
+  0% { transform: translateX(20px); opacity: 0; }
+  100% { transform: translateX(0); opacity: 1; }
+}
+
+.animate-toast-in {
+  animation: toast-in 220ms ease-out;
+}
+
+@keyframes rankup-shockwave {
+  0% { transform: scale(0.2); opacity: 1; }
+  100% { transform: scale(4); opacity: 0; }
+}
+
+.rankup-shockwave {
+  animation: rankup-shockwave 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes rankup-letter-in {
+  0% { transform: scale(0.3) rotate(-8deg); opacity: 0; filter: blur(8px); }
+  55% { transform: scale(1.15) rotate(2deg); opacity: 1; filter: blur(0); }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0); }
+}
+
+.rankup-letter-in {
+  animation: rankup-letter-in 900ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes rankup-shine-sweep {
+  0% { transform: translateX(-150%) skewX(-20deg); }
+  100% { transform: translateX(150%) skewX(-20deg); }
+}
+
+.rankup-shine {
+  animation: rankup-shine-sweep 1.4s ease-in-out 400ms both;
+}
+
+@keyframes rankup-flash {
+  0% { opacity: 0; }
+  10% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.rankup-flash {
+  animation: rankup-flash 900ms ease-out forwards;
+}

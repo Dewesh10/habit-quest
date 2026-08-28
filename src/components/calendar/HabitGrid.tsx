@@ -56,10 +56,10 @@ export default function HabitGrid({
 
   return (
     <div className="system-panel overflow-x-auto">
-      <table className="border-collapse w-full">
+      <table className="border-collapse w-full" aria-label={`Habit completion grid for ${today.slice(0, 7)}`}>
         <thead>
           <tr>
-            <th className="sticky left-0 bg-slate-900 text-left system-panel-header px-3 py-2 min-w-[140px] z-10">
+            <th scope="col" className="sticky left-0 bg-slate-900 text-left system-panel-header px-3 py-2 min-w-[140px] z-10">
               Quest
             </th>
             {dates.map((dateISO) => {
@@ -68,11 +68,13 @@ export default function HabitGrid({
               return (
                 <th
                   key={dateISO}
-                  className={`text-xs font-mono px-1.5 py-2 min-w-[28px] ${
+                  scope="col"
+                  className={`text-xs font-mono px-1.5 py-2 min-w-[28px] font-normal ${
                     isToday ? "text-blue-400" : "text-slate-500"
                   }`}
                 >
                   {day}
+                  {isToday && <span className="sr-only"> (today)</span>}
                 </th>
               )
             })}
@@ -83,12 +85,12 @@ export default function HabitGrid({
             const colors = getHabitColorClasses(habit.color)
             return (
               <tr key={habit.id} className="border-t border-blue-900/20">
-                <td className="sticky left-0 bg-slate-900 px-3 py-2 z-10">
+                <th scope="row" className="sticky left-0 bg-slate-900 px-3 py-2 z-10 text-left font-normal">
                   <div className="flex items-center gap-2">
                     <HabitIcon name={habit.icon} className={`w-4 h-4 ${colors.text}`} />
                     <span className="text-white text-sm whitespace-nowrap">{habit.name}</span>
                   </div>
-                </td>
+                </th>
                 {dates.map((dateISO) => {
                   const scheduled = isScheduledOn(habit.frequency, dateISO)
                   const completed = isCompleted(habit.id, dateISO)
@@ -97,7 +99,8 @@ export default function HabitGrid({
                   if (!scheduled) {
                     return (
                       <td key={dateISO} className="text-center px-1.5 py-2">
-                        <div className="w-5 h-5 mx-auto rounded bg-slate-800/40" />
+                        <div className="w-5 h-5 mx-auto rounded bg-slate-800/40" aria-hidden="true" />
+                        <span className="sr-only">{habit.name} not scheduled on {dateISO}</span>
                       </td>
                     )
                   }
@@ -105,23 +108,27 @@ export default function HabitGrid({
                   return (
                     <td key={dateISO} className="text-center px-1.5 py-2">
                       <button
+                        type="button"
+                        role="checkbox"
+                        aria-checked={completed}
                         onClick={() => handleToggle(habit, dateISO)}
-                        className={`relative w-5 h-5 mx-auto rounded border-2 transition-colors ${
+                        className={`relative w-5 h-5 mx-auto rounded border-2 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400 ${
                           completed ? "check-pop" : ""
                         } ${
                           completed
                             ? "bg-blue-500 border-blue-400 shadow-[0_0_8px_rgba(56,189,248,0.7)]"
                             : "border-slate-600 hover:border-blue-500"
                         }`}
-                        aria-label={`Toggle ${habit.name} for ${dateISO}`}
+                        aria-label={`${habit.name}, ${dateISO}, ${completed ? "completed" : "not completed"}`}
                       >
                         {burstKey === key && (
                           <>
-                            <span className="burst-ring" />
+                            <span className="burst-ring" aria-hidden="true" />
                             {Array.from({ length: 6 }).map((_, i) => (
                               <span
                                 key={i}
                                 className="burst-dot"
+                                aria-hidden="true"
                                 style={{ "--angle": `${i * 60}deg` } as CSSProperties}
                               />
                             ))}

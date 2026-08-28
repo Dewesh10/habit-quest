@@ -5,6 +5,7 @@ import { useSettings } from "../../hooks/useSettings"
 import { useAchievements } from "../../hooks/useAchievements"
 import { useNotificationLog } from "../../hooks/useNotificationLog"
 import LevelUpOverlay from "../../components/dashboard/LevelUpOverlay"
+import RankUpOverlay from "../../components/dashboard/RankUpOverlay"
 import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
   calculateOverallCompletion,
@@ -16,6 +17,7 @@ import {
   calculateBestHabit,
   calculateWorstHabit,
 } from "../../utils/stats"
+import { getRank } from "../../utils/rank"
 import { getSystemMessage } from "../../utils/systemMessage"
 import { playQuestCompleteSound, playLevelUpSound } from "../../utils/sound"
 import HabitGrid from "../../components/calendar/HabitGrid"
@@ -40,6 +42,10 @@ export default function Dashboard() {
   const [levelUpValue, setLevelUpValue] = useState(1)
   const prevLevel = useRef<number | null>(null)
 
+  const [showRankUp, setShowRankUp] = useState(false)
+  const [rankUpInfo, setRankUpInfo] = useState<{ rank: string; title: string } | null>(null)
+  const prevRank = useRef<string | null>(null)
+
   const [questNotif, setQuestNotif] = useState<{ message: string; subtext: string } | null>(null)
   const [questNotifVisible, setQuestNotifVisible] = useState(false)
 
@@ -48,6 +54,7 @@ export default function Dashboard() {
 
   const xp = allLoaded ? calculateXP(habits, completions) : 0
   const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
+  const rankInfo = getRank(level)
 
   useEffect(() => {
     if (!allLoaded) return
@@ -69,6 +76,27 @@ export default function Dashboard() {
     prevLevel.current = level
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, allLoaded, settings.soundEnabled])
+
+  useEffect(() => {
+    if (!allLoaded) return
+
+    if (prevRank.current === null) {
+      prevRank.current = rankInfo.rank
+      return
+    }
+
+    if (rankInfo.rank !== prevRank.current) {
+      setRankUpInfo({ rank: rankInfo.rank, title: rankInfo.title })
+      setShowRankUp(true)
+      if (settings.soundEnabled) playLevelUpSound()
+      logEvent("levelup", `Rank Advanced: ${rankInfo.rank}-Rank Hunter`, rankInfo.title)
+      prevRank.current = rankInfo.rank
+      return
+    }
+
+    prevRank.current = rankInfo.rank
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rankInfo.rank, allLoaded, settings.soundEnabled])
 
   useEffect(() => {
     if (!newlyUnlocked) return
@@ -152,6 +180,14 @@ export default function Dashboard() {
 
       {showLevelUp && (
         <LevelUpOverlay level={levelUpValue} onDone={() => setShowLevelUp(false)} />
+      )}
+
+      {showRankUp && rankUpInfo && (
+        <RankUpOverlay
+          rank={rankUpInfo.rank}
+          title={rankUpInfo.title}
+          onDone={() => setShowRankUp(false)}
+        />
       )}
 
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
@@ -259,4 +295,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
