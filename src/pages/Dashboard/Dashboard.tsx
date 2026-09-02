@@ -6,6 +6,8 @@ import { useAchievements } from "../../hooks/useAchievements"
 import { useNotificationLog } from "../../hooks/useNotificationLog"
 import LevelUpOverlay from "../../components/dashboard/LevelUpOverlay"
 import RankUpOverlay from "../../components/dashboard/RankUpOverlay"
+import GatePanel from "../../components/dashboard/GatePanel"
+import GateClearOverlay from "../../components/dashboard/GateClearOverlay"
 import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
   calculateOverallCompletion,
@@ -19,6 +21,7 @@ import {
 } from "../../utils/stats"
 import { getRank } from "../../utils/rank"
 import { getSystemMessage } from "../../utils/systemMessage"
+import { getNeglectedHabits } from "../../utils/penalty"
 import { playQuestCompleteSound, playLevelUpSound } from "../../utils/sound"
 import HabitGrid from "../../components/calendar/HabitGrid"
 import TodayView from "../../components/dashboard/TodayView"
@@ -46,6 +49,9 @@ export default function Dashboard() {
   const [rankUpInfo, setRankUpInfo] = useState<{ rank: string; title: string } | null>(null)
   const prevRank = useRef<string | null>(null)
 
+  const [showGateClear, setShowGateClear] = useState(false)
+  const prevGateCleared = useRef<boolean | null>(null)
+
   const [questNotif, setQuestNotif] = useState<{ message: string; subtext: string } | null>(null)
   const [questNotifVisible, setQuestNotifVisible] = useState(false)
 
@@ -55,6 +61,10 @@ export default function Dashboard() {
   const xp = allLoaded ? calculateXP(habits, completions) : 0
   const { level, currentLevelXP, nextLevelXP } = calculateLevel(xp)
   const rankInfo = getRank(level)
+  const totalCompletedEarly = allLoaded ? calculateTotalCompleted(completions) : 0
+  const goalEarly = settings.monthlyGoal
+  const goalProgressEarly = goalEarly > 0 ? Math.min(100, Math.round((totalCompletedEarly / goalEarly) * 100)) : 0
+  const gateCleared = goalProgressEarly >= 100
 
   useEffect(() => {
     if (!allLoaded) return
@@ -97,6 +107,24 @@ export default function Dashboard() {
     prevRank.current = rankInfo.rank
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rankInfo.rank, allLoaded, settings.soundEnabled])
+
+  useEffect(() => {
+    if (!allLoaded) return
+
+    if (prevGateCleared.current === null) {
+      prevGateCleared.current = gateCleared
+      return
+    }
+
+    if (gateCleared && !prevGateCleared.current) {
+      setShowGateClear(true)
+      if (settings.soundEnabled) playLevelUpSound()
+      logEvent("achievement", "Gate Cleared", "Monthly goal fully completed")
+    }
+
+    prevGateCleared.current = gateCleared
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [gateCleared, allLoaded, settings.soundEnabled])
 
   useEffect(() => {
     if (!newlyUnlocked) return
@@ -145,6 +173,7 @@ export default function Dashboard() {
     completions.some((c) => c.habitId === h.id && c.date === todayISOStr && c.completed)
   ).length
   const systemMessage = getSystemMessage(currentStreak, todaysDone, todaysHabits.length)
+  const neglectedHabits = getNeglectedHabits(habits, completions, todayISOStr)
 
   const bestHabit = calculateBestHabit(habits, completions, monthDates)
   const worstHabit = calculateWorstHabit(habits, completions, monthDates)
@@ -190,11 +219,20 @@ export default function Dashboard() {
         />
       )}
 
+      {showGateClear && (
+        <GateClearOverlay onDone={() => setShowGateClear(false)} />
+      )}
+
       <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
       <p className="text-slate-400 mb-2">
         {getMonthName(month)} {year} · {todayISO()}
       </p>
       <p className="text-blue-400/90 text-sm font-mono mb-6">&gt; {systemMessage}</p>
+      {neglectedHabits.length > 0 && (
+        <p className="text-red-400/90 text-sm font-mono mb-6 -mt-4">
+          &gt; Penalty: {neglectedHabits.length} quest{neglectedHabits.length === 1 ? "" : "s"} neglected yesterday.
+        </p>
+      )}
 
       <StatusWindow
         level={level}
@@ -209,26 +247,14 @@ export default function Dashboard() {
 
       <TodayView
         habits={habits}
+        completions={completions}
         isCompleted={isCompleted}
         toggleCompletion={toggleCompletion}
       />
 
       <StatAllocationPanel stats={statAllocations} />
 
-      <div className="system-panel p-4 mb-6">
-        <div className="flex justify-between items-center mb-2">
-          <span className="system-panel-header">Monthly Goal</span>
-          <span className="text-xs text-slate-400 font-mono">
-            {totalCompleted} / {goal} ({goalProgress}%)
-          </span>
-        </div>
-        <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-blue-600 to-cyan-400"
-            style={{ width: `${goalProgress}%`, boxShadow: "0 0 8px rgba(56,189,248,0.7)" }}
-          />
-        </div>
-      </div>
+      <GatePanel rank={rankInfo.rank} completed={totalCompleted} goal={goal} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="system-panel p-4 md:p-6">
@@ -295,3 +321,13 @@ export default function Dashboard() {
     </div>
   )
 }
+
+
+
+
+
+
+
+
+
+

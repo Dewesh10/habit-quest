@@ -104,15 +104,15 @@ export default function StatusWindow({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-6 relative z-10">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-6 relative z-10">
         {[
           { label: "Level", value: level, suffix: "" },
           { label: "Completion", value: overallCompletion, suffix: "%" },
           { label: "Day Streak", value: currentStreak, suffix: "" },
           { label: "Quests Done", value: totalCompleted, suffix: "" },
         ].map((stat) => (
-          <div key={stat.label} className="relative border-l-2 border-blue-500/30 pl-3">
-            <p className="font-display text-4xl md:text-5xl font-black text-white leading-none">
+          <div key={stat.label} className="relative border-l-2 border-blue-500/30 pl-3 min-w-0">
+            <p className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-none truncate">
               <CountUp value={stat.value} suffix={stat.suffix} />
             </p>
             <p className="text-[0.65rem] tracking-widest text-slate-500 uppercase mt-2">{stat.label}</p>

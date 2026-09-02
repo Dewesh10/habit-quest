@@ -1,7 +1,8 @@
-import { icons } from "lucide-react"
+﻿import { icons, AlertTriangle, Check } from "lucide-react"
 import { isScheduledOn, todayISO } from "../../utils/date"
 import { getHabitColorClasses } from "../../utils/colorMap"
-import type { Habit } from "../../types"
+import { isNeglected } from "../../utils/penalty"
+import type { Habit, Completion } from "../../types"
 
 function HabitIcon({ name, className }: { name: string; className?: string }) {
   const Icon = icons[name as keyof typeof icons]
@@ -11,11 +12,12 @@ function HabitIcon({ name, className }: { name: string; className?: string }) {
 
 interface TodayViewProps {
   habits: Habit[]
+  completions: Completion[]
   isCompleted: (habitId: string, dateISO: string) => boolean
   toggleCompletion: (habitId: string, dateISO: string) => void
 }
 
-export default function TodayView({ habits, isCompleted, toggleCompletion }: TodayViewProps) {
+export default function TodayView({ habits, completions, isCompleted, toggleCompletion }: TodayViewProps) {
   const today = todayISO()
   const todaysHabits = habits.filter(
     (h) => !h.archived && isScheduledOn(h.frequency, today)
@@ -42,6 +44,7 @@ export default function TodayView({ habits, isCompleted, toggleCompletion }: Tod
       <div className="flex flex-col gap-2">
         {todaysHabits.map((habit) => {
           const done = isCompleted(habit.id, today)
+          const neglected = !done && isNeglected(habit, completions, today)
           const colors = getHabitColorClasses(habit.color)
           return (
             <button
@@ -50,6 +53,8 @@ export default function TodayView({ habits, isCompleted, toggleCompletion }: Tod
               className={`flex items-center gap-3 p-2.5 rounded-lg border text-left transition-colors ${
                 done
                   ? "bg-blue-500/10 border-blue-800"
+                  : neglected
+                  ? "bg-red-500/5 border-red-900/50 penalty-pulse"
                   : "bg-slate-800/50 border-slate-800"
               }`}
             >
@@ -59,14 +64,22 @@ export default function TodayView({ habits, isCompleted, toggleCompletion }: Tod
               <span className={`text-sm flex-1 ${done ? "text-white" : "text-slate-300"}`}>
                 {habit.name}
               </span>
+              {neglected && (
+                <span className="flex items-center gap-1 text-red-400 text-[0.65rem] font-medium">
+                  <AlertTriangle className="w-3 h-3" />
+                  Penalty
+                </span>
+              )}
               <div
                 className={`w-5 h-5 rounded-md border flex items-center justify-center ${
                   done
                     ? "bg-blue-500 border-blue-500"
+                    : neglected
+                    ? "border-red-800"
                     : "border-slate-600"
                 }`}
               >
-                {done && <span className="text-slate-950 text-xs">?</span>}
+                {done && <Check className="w-3 h-3 text-slate-950" strokeWidth={3} />}
               </div>
             </button>
           )

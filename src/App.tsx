@@ -11,6 +11,7 @@ import SystemBoot from "./components/common/SystemBoot"
 import AmbientBackground from "./components/common/AmbientBackground"
 import PageTransition from "./components/common/PageTransition"
 import { ToastProvider } from "./components/common/Toast"
+import SystemOracle from "./components/common/SystemOracle"
 
 function App() {
   const [booted, setBooted] = useState(() => sessionStorage.getItem("hq-booted") === "true")
@@ -42,6 +43,7 @@ function App() {
             </PageTransition>
           </main>
           <BottomNav />
+          <SystemOracle />
         </div>
       </BrowserRouter>
     </ToastProvider>
@@ -49,3 +51,4 @@ function App() {
 }
 
 export default App
+

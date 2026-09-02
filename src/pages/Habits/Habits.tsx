@@ -8,6 +8,7 @@ import Modal from "../../components/common/Modal"
 import HabitForm from "../../components/habits/HabitForm"
 import CornerBrackets from "../../components/common/CornerBrackets"
 import HabitsSkeleton from "../../components/habits/HabitsSkeleton"
+import { isScheduledOn, toISODate } from "../../utils/date"
 import type { Habit } from "../../types"
 import {
   calculateHabitStreak,
@@ -28,6 +29,35 @@ function frequencyLabel(habit: Habit): string {
     return `${habit.frequency.length}x / week`
   }
   return ""
+}
+
+// Completion ratio for the current week (Sun-Sat), scheduled days only.
+function weeklyProgress(habit: Habit, completions: { habitId: string; date: string; completed: boolean }[]) {
+  const today = new Date()
+  const dayOfWeek = today.getDay()
+  const weekStart = new Date(today)
+  weekStart.setDate(today.getDate() - dayOfWeek)
+
+  let scheduled = 0
+  let done = 0
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(weekStart)
+    d.setDate(weekStart.getDate() + i)
+    if (d > today) continue
+    const iso = toISODate(d)
+    if (!isScheduledOn(habit.frequency, iso)) continue
+    scheduled++
+    if (completions.some((c) => c.habitId === habit.id && c.date === iso && c.completed)) {
+      done++
+    }
+  }
+  return { done, scheduled }
+}
+
+const DIFFICULTY_BORDER: Record<string, string> = {
+  Easy: "before:bg-emerald-500",
+  Normal: "before:bg-amber-500",
+  Hard: "before:bg-red-500",
 }
 
 export default function Habits() {
@@ -90,14 +120,14 @@ export default function Habits() {
             <CornerBrackets />
             <p className="system-panel-header mb-1">Current Streak</p>
             <p className="font-display text-3xl font-bold text-white">
-              ðŸ”¥ {currentStreak} <span className="text-lg text-slate-400 font-normal">days</span>
+              &#128293; {currentStreak} <span className="text-lg text-slate-400 font-normal">days</span>
             </p>
           </div>
           <div className="hero-panel relative px-5 py-4 flex-1">
             <CornerBrackets />
             <p className="system-panel-header mb-1">Longest Streak</p>
             <p className="font-display text-3xl font-bold text-white">
-              ðŸ† {longestStreak} <span className="text-lg text-slate-400 font-normal">days</span>
+              &#127942; {longestStreak} <span className="text-lg text-slate-400 font-normal">days</span>
             </p>
           </div>
         </div>
@@ -120,11 +150,15 @@ export default function Habits() {
             const colors = getHabitColorClasses(habit.color)
             const habitStreak = calculateHabitStreak(habit, completions)
             const difficulty = getDifficulty(habit.xpValue)
+            const { done, scheduled } = weeklyProgress(habit, completions)
+            const weekPct = scheduled > 0 ? Math.round((done / scheduled) * 100) : 0
+            const borderClass = DIFFICULTY_BORDER[difficulty.label] ?? "before:bg-slate-500"
+
             return (
               <button
                 key={habit.id}
                 onClick={() => openEditModal(habit)}
-                className="system-panel card-hover relative text-left p-5 flex flex-col gap-3"
+                className={`system-panel card-hover relative text-left p-5 flex flex-col gap-3 overflow-hidden before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] ${borderClass}`}
               >
                 <CornerBrackets />
                 <div className="flex items-start justify-between">
@@ -143,13 +177,30 @@ export default function Habits() {
                     {difficulty.label}
                   </span>
                 </div>
+
                 <div className="flex items-center justify-between text-xs text-slate-400">
                   <span>{frequencyLabel(habit)}</span>
                   <span className="text-blue-400 font-mono font-medium">+{habit.xpValue} XP</span>
                 </div>
+
+                {scheduled > 0 && (
+                  <div>
+                    <div className="flex justify-between items-baseline mb-1">
+                      <span className="text-[0.6rem] tracking-widest text-slate-500 uppercase">This week</span>
+                      <span className="text-[0.65rem] font-mono text-slate-400">{done}/{scheduled}</span>
+                    </div>
+                    <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full ${colors.text.replace("text-", "bg-")} transition-all`}
+                        style={{ width: `${weekPct}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
                 {habitStreak > 0 && (
                   <div className="text-xs text-orange-400 font-medium">
-                    ðŸ”¥ {habitStreak} day streak
+                    &#128293; {habitStreak} day streak
                   </div>
                 )}
               </button>

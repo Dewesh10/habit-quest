@@ -1,4 +1,4 @@
-import type { Habit, Completion, Settings, Achievement, NotificationEntry } from "../types"
+﻿import type { Habit, Completion, Settings, Achievement, NotificationEntry } from "../types"
 
 const PREFIX = "habitQuest:v1:"
 
@@ -8,6 +8,8 @@ const KEYS = {
   settings: PREFIX + "settings",
   achievements: PREFIX + "achievements",
   notifications: PREFIX + "notifications",
+  userName: PREFIX + "userName",
+  onboarded: PREFIX + "onboarded",
 }
 
 const MAX_NOTIFICATIONS = 50
@@ -75,4 +77,20 @@ export const storageService = {
     const trimmed = entries.slice(-MAX_NOTIFICATIONS)
     safeSet(KEYS.notifications, trimmed)
   },
+
+  getUserName(): string | null {
+    return safeGet<string | null>(KEYS.userName, null)
+  },
+  saveUserName(name: string): void {
+    safeSet(KEYS.userName, name)
+  },
+
+  getOnboarded(): boolean {
+    return safeGet<boolean>(KEYS.onboarded, false)
+  },
+  setOnboarded(value: boolean): void {
+    safeSet(KEYS.onboarded, value)
+  },
 }
+
+
