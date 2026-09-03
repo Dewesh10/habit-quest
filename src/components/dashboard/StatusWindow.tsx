@@ -112,7 +112,7 @@ export default function StatusWindow({
           { label: "Quests Done", value: totalCompleted, suffix: "" },
         ].map((stat) => (
           <div key={stat.label} className="relative border-l-2 border-blue-500/30 pl-3 min-w-0">
-            <p className="font-display text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-none truncate">
+            <p className="font-stat text-3xl sm:text-4xl lg:text-5xl font-black text-white leading-none truncate">
               <CountUp value={stat.value} suffix={stat.suffix} />
             </p>
             <p className="text-[0.65rem] tracking-widest text-slate-500 uppercase mt-2">{stat.label}</p>
@@ -131,3 +131,4 @@ export default function StatusWindow({
     </div>
   )
 }
+

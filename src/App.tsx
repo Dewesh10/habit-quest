@@ -12,17 +12,28 @@ import AmbientBackground from "./components/common/AmbientBackground"
 import PageTransition from "./components/common/PageTransition"
 import { ToastProvider } from "./components/common/Toast"
 import SystemOracle from "./components/common/SystemOracle"
+import OnboardingFlow from "./components/onboarding/OnboardingFlow"
+import { storageService } from "./services/storageService"
 
 function App() {
   const [booted, setBooted] = useState(() => sessionStorage.getItem("hq-booted") === "true")
+  const [onboarded, setOnboarded] = useState(() => storageService.getOnboarded())
 
   function handleBootDone() {
     sessionStorage.setItem("hq-booted", "true")
     setBooted(true)
   }
 
+  function handleOnboardingFinished() {
+    setOnboarded(true)
+  }
+
   if (!booted) {
     return <SystemBoot onDone={handleBootDone} />
+  }
+
+  if (!onboarded) {
+    return <OnboardingFlow onFinished={handleOnboardingFinished} />
   }
 
   return (
@@ -31,7 +42,7 @@ function App() {
         <AmbientBackground />
         <div className="flex min-h-screen relative z-10">
           <Sidebar />
-          <main className="flex-1 min-w-0 overflow-x-hidden p-6 pb-24 md:pb-6">
+          <main className="flex-1 min-w-0 w-full overflow-x-hidden p-6 pb-24 md:pb-6">
             <PageTransition>
               <Routes>
                 <Route path="/" element={<Dashboard />} />

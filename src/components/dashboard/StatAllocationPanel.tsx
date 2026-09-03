@@ -65,7 +65,7 @@ export default function StatAllocationPanel({ stats }: { stats: StatAllocation[]
                   <span className="font-display text-blue-400 font-bold mr-1.5 text-base">{s.abbr}</span>
                   {s.label}
                 </span>
-                <span className="font-display text-sm font-bold text-white">{s.value}</span>
+                <span className="font-stat text-sm font-bold text-white">{s.value}</span>
               </div>
               <div className="h-2 bg-slate-800 rounded-full overflow-hidden border border-blue-900/30">
                 <div
