@@ -1,5 +1,6 @@
 ﻿import { useState } from "react"
 import { icons } from "lucide-react"
+import { motion } from "framer-motion"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getHabitColorClasses } from "../../utils/colorMap"
@@ -31,7 +32,6 @@ function frequencyLabel(habit: Habit): string {
   return ""
 }
 
-// Completion ratio for the current week (Sun-Sat), scheduled days only.
 function weeklyProgress(habit: Habit, completions: { habitId: string; date: string; completed: boolean }[]) {
   const today = new Date()
   const dayOfWeek = today.getDay()
@@ -58,6 +58,16 @@ const DIFFICULTY_BORDER: Record<string, string> = {
   Easy: "before:bg-emerald-500",
   Normal: "before:bg-amber-500",
   Hard: "before:bg-red-500",
+}
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16, scale: 0.97 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: { delay: i * 0.05, type: "spring", stiffness: 300, damping: 26 },
+  }),
 }
 
 export default function Habits() {
@@ -106,12 +116,14 @@ export default function Habits() {
           <h1 className="font-display text-2xl font-bold text-white uppercase tracking-wide">Quest Log</h1>
           <p className="text-slate-500 text-sm mt-0.5">Your active daily quests</p>
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.96 }}
           onClick={openAddModal}
-          className="bg-blue-500 hover:bg-blue-400 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg transition-colors shadow-[0_0_16px_rgba(56,189,248,0.4)]"
+          className="bg-blue-500 hover:bg-blue-400 text-slate-950 font-semibold text-sm px-4 py-2 rounded-lg shadow-[0_0_16px_rgba(56,189,248,0.4)]"
         >
           + New Quest
-        </button>
+        </motion.button>
       </div>
 
       {activeHabits.length > 0 && (
@@ -146,7 +158,7 @@ export default function Habits() {
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activeHabits.map((habit) => {
+          {activeHabits.map((habit, index) => {
             const colors = getHabitColorClasses(habit.color)
             const habitStreak = calculateHabitStreak(habit, completions)
             const difficulty = getDifficulty(habit.xpValue)
@@ -155,10 +167,16 @@ export default function Habits() {
             const borderClass = DIFFICULTY_BORDER[difficulty.label] ?? "before:bg-slate-500"
 
             return (
-              <button
+              <motion.button
                 key={habit.id}
+                custom={index}
+                initial="hidden"
+                animate="visible"
+                variants={cardVariants}
+                whileHover={{ y: -4, scale: 1.015 }}
+                whileTap={{ scale: 0.985 }}
                 onClick={() => openEditModal(habit)}
-                className={`system-panel card-hover relative text-left p-5 flex flex-col gap-3 overflow-hidden before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] ${borderClass}`}
+                className={`system-panel relative text-left p-5 flex flex-col gap-3 overflow-hidden before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[3px] ${borderClass}`}
               >
                 <CornerBrackets />
                 <div className="flex items-start justify-between">
@@ -190,9 +208,11 @@ export default function Habits() {
                       <span className="text-[0.65rem] font-mono text-slate-400">{done}/{scheduled}</span>
                     </div>
                     <div className="h-1 bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full ${colors.text.replace("text-", "bg-")} transition-all`}
-                        style={{ width: `${weekPct}%` }}
+                      <motion.div
+                        className={`h-full ${colors.text.replace("text-", "bg-")}`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${weekPct}%` }}
+                        transition={{ delay: index * 0.05 + 0.3, duration: 0.6, ease: "easeOut" }}
                       />
                     </div>
                   </div>
@@ -203,7 +223,7 @@ export default function Habits() {
                     &#128293; {habitStreak} day streak
                   </div>
                 )}
-              </button>
+              </motion.button>
             )
           })}
         </div>
