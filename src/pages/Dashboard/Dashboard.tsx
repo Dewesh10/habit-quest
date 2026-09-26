@@ -12,6 +12,8 @@ import GatePanel from "../../components/dashboard/GatePanel"
 import GateClearOverlay from "../../components/dashboard/GateClearOverlay"
 import DailyQuestPanel from "../../components/dashboard/DailyQuestPanel"
 import PenaltyZoneOverlay from "../../components/dashboard/PenaltyZoneOverlay"
+import CollegeSystemPanel from "../../components/dashboard/CollegeSystemPanel"
+import CustomRoutineModal from "../../components/dashboard/CustomRoutineModal"
 
 import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
@@ -36,6 +38,7 @@ import SystemNotification from "../../components/dashboard/SystemNotification"
 import StatAllocationPanel from "../../components/dashboard/StatAllocationPanel"
 import NotificationLogPanel from "../../components/dashboard/NotificationLogPanel"
 import { buildStatAllocations } from "../../utils/statMap"
+import type { CollegeProfile } from "../../types"
 
 export default function Dashboard() {
   const { habits, loaded: habitsLoaded } = useHabits()
@@ -53,12 +56,87 @@ export default function Dashboard() {
     penalty,
     allocateAP,
     awardAP,
+    addGold,
     incrementDailyQuest,
     triggerPenalty,
     progressPenaltyQuest,
     clearPenalty,
     getCombatPower,
   } = useHunterSystem()
+
+  // College Profile State
+  const [collegeProfile, setCollegeProfile] = useState<CollegeProfile>(() => {
+    const saved = localStorage.getItem("hq-college-profile")
+    if (saved) {
+      try { return JSON.parse(saved) as CollegeProfile } catch {}
+    }
+    return {
+      major: "Computer Science & Engineering",
+      year: "2nd Year",
+      targetGPA: 3.8,
+      dailyStudyGoalHours: 3,
+      academicQuests: [
+        {
+          id: "acad-attendance-1",
+          title: "Attend All Lectures & Classes Today",
+          category: "Attendance",
+          hoursTarget: 2,
+          hoursCompleted: 0,
+          completed: false,
+          intReward: 2,
+          goldReward: 60,
+        },
+        {
+          id: "acad-study-1",
+          title: "Deep Study Block (Revision / Coding)",
+          category: "Study Block",
+          hoursTarget: 3,
+          hoursCompleted: 0,
+          completed: false,
+          intReward: 3,
+          goldReward: 100,
+        },
+        {
+          id: "acad-assignment-1",
+          title: "Complete Assignment Milestone / Sprint",
+          category: "Assignment",
+          hoursTarget: 1,
+          hoursCompleted: 0,
+          completed: false,
+          intReward: 2,
+          goldReward: 80,
+        },
+      ],
+      examGates: [
+        {
+          id: "exam-midterms",
+          name: "Midterm Examinations Gate",
+          type: "Midterms Raid",
+          difficulty: "A-Rank",
+          requiredStudyHours: 15,
+          currentStudyHours: 4,
+          cleared: false,
+          gpaBoost: 0.2,
+        },
+        {
+          id: "exam-finals",
+          name: "Semester Finals S-Rank Gate",
+          type: "Finals S-Rank Gate",
+          difficulty: "S-Rank",
+          requiredStudyHours: 30,
+          currentStudyHours: 8,
+          cleared: false,
+          gpaBoost: 0.4,
+        },
+      ],
+    }
+  })
+
+  useEffect(() => {
+    localStorage.setItem("hq-college-profile", JSON.stringify(collegeProfile))
+  }, [collegeProfile])
+
+  const [routineModalOpen, setRoutineModalOpen] = useState(false)
 
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [levelUpValue, setLevelUpValue] = useState(1)
@@ -99,7 +177,7 @@ export default function Dashboard() {
     if (level > prevLevel.current) {
       setLevelUpValue(level)
       setShowLevelUp(true)
-      awardAP(3) // +3 free AP on level up
+      awardAP(3)
       if (settings.soundEnabled) soundEngine.playLevelUpFanfare()
       logEvent("levelup", `Level Up! You're now Level ${level}`)
       prevLevel.current = level
@@ -175,6 +253,40 @@ export default function Dashboard() {
     setTimeout(() => setQuestNotifVisible(false), 2200)
   }
 
+  function handleCompleteAcademicQuest(questId: string) {
+    setCollegeProfile((prev) => {
+      const target = prev.academicQuests.find((q) => q.id === questId)
+      if (target && !target.completed) {
+        soundEngine.playQuestChime()
+        addGold(target.goldReward)
+      }
+      return {
+        ...prev,
+        academicQuests: prev.academicQuests.map((q) =>
+          q.id === questId ? { ...q, completed: true } : q
+        ),
+      }
+    })
+  }
+
+  function handleProgressExamGate(gateId: string, hours: number) {
+    setCollegeProfile((prev) => ({
+      ...prev,
+      examGates: prev.examGates.map((g) => {
+        if (g.id === gateId) {
+          const nextProg = Math.min(g.requiredStudyHours, g.currentStudyHours + hours)
+          const isDone = nextProg >= g.requiredStudyHours
+          if (isDone && !g.cleared) {
+            soundEngine.playLevelUpFanfare()
+            addGold(500)
+          }
+          return { ...g, currentStudyHours: nextProg, cleared: isDone }
+        }
+        return g
+      }),
+    }))
+  }
+
   if (!allLoaded) {
     return <p className="text-slate-400 font-mono p-6">&gt; Initializing System...</p>
   }
@@ -227,6 +339,20 @@ export default function Dashboard() {
         onClearPenalty={clearPenalty}
       />
 
+      {/* Routine Customizer Modal */}
+      <CustomRoutineModal
+        open={routineModalOpen}
+        currentMajor={collegeProfile.major}
+        onSave={(config) => {
+          setCollegeProfile((prev) => ({
+            ...prev,
+            major: config.major,
+            dailyStudyGoalHours: config.dailyStudyGoalHours,
+          }))
+        }}
+        onClose={() => setRoutineModalOpen(false)}
+      />
+
       {questNotif && (
         <SystemNotification
           message={questNotif.message}
@@ -251,7 +377,7 @@ export default function Dashboard() {
         <GateClearOverlay onDone={() => setShowGateClear(false)} />
       )}
 
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <h1 className="text-2xl font-bold font-display text-white uppercase tracking-wider">
             Solo Leveling System
@@ -261,14 +387,23 @@ export default function Dashboard() {
           </p>
         </div>
 
-        {neglectedHabits.length > 0 && !penalty.active && (
+        <div className="flex items-center gap-2">
           <button
-            onClick={() => triggerPenalty(`${neglectedHabits.length} quests neglected yesterday.`)}
-            className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded font-mono text-xs uppercase animate-pulse"
+            onClick={() => setRoutineModalOpen(true)}
+            className="px-3 py-1.5 bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 rounded font-mono text-xs uppercase hover:bg-cyan-500/30 transition-all"
           >
-            TRIGGER EMERGENCY PENALTY
+            CUSTOM ROUTINE PERSONALIZER
           </button>
-        )}
+
+          {neglectedHabits.length > 0 && !penalty.active && (
+            <button
+              onClick={() => triggerPenalty(`${neglectedHabits.length} quests neglected yesterday.`)}
+              className="px-3 py-1.5 bg-red-500/20 text-red-400 border border-red-500/40 rounded font-mono text-xs uppercase animate-pulse"
+            >
+              TRIGGER PENALTY
+            </button>
+          )}
+        </div>
       </div>
 
       <p className="text-cyan-400 text-xs font-mono mb-6">&gt; {systemMessage}</p>
@@ -287,6 +422,14 @@ export default function Dashboard() {
         combatPower={combatPower}
         penalty={penalty}
         onAllocateAP={allocateAP}
+      />
+
+      {/* Dedicated College Student System HUD */}
+      <CollegeSystemPanel
+        profile={collegeProfile}
+        onUpdateProfile={(updated) => setCollegeProfile((prev) => ({ ...prev, ...updated }))}
+        onCompleteAcademicQuest={handleCompleteAcademicQuest}
+        onProgressExamGate={handleProgressExamGate}
       />
 
       {/* Fixed Non-skippable Daily Quests */}

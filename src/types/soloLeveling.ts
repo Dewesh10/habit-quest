@@ -111,3 +111,45 @@ export interface PenaltyState {
   } | null
   triggeredAt?: string
 }
+
+// --- College Student System Types ---
+
+export type CollegeMajor =
+  | 'Computer Science & Engineering'
+  | 'Pre-Med & Healthcare'
+  | 'Business & Finance'
+  | 'Law & Legal Studies'
+  | 'Natural Sciences & Math'
+  | 'Arts & Design'
+  | 'General Academic'
+
+export interface AcademicQuest {
+  id: string
+  title: string
+  category: 'Attendance' | 'Study Block' | 'Assignment' | 'Exam Prep' | 'Project'
+  hoursTarget: number
+  hoursCompleted: number
+  completed: boolean
+  intReward: number
+  goldReward: number
+}
+
+export interface ExamGate {
+  id: string
+  name: string
+  type: 'Midterms Raid' | 'Finals S-Rank Gate' | 'Semester Project'
+  difficulty: 'A-Rank' | 'S-Rank'
+  requiredStudyHours: number
+  currentStudyHours: number
+  cleared: boolean
+  gpaBoost: number
+}
+
+export interface CollegeProfile {
+  major: CollegeMajor
+  year: '1st Year' | '2nd Year' | '3rd Year' | '4th Year' | 'Graduate'
+  targetGPA: number
+  dailyStudyGoalHours: number
+  academicQuests: AcademicQuest[]
+  examGates: ExamGate[]
+}
