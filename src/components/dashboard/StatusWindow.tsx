@@ -1,6 +1,7 @@
-import { Plus, AlertTriangle, Zap, Dumbbell, Brain, Heart, Eye } from "lucide-react"
+import { Plus, AlertTriangle, Zap, Dumbbell, Brain, Heart, Eye, Flame, Swords } from "lucide-react"
 import { getRank } from "../../utils/rank"
 import type { HunterStats, PenaltyState } from "../../types"
+
 
 interface StatusWindowProps {
   level: number
@@ -165,17 +166,22 @@ export default function StatusWindow({
       <div className="grid grid-cols-3 gap-3 mb-6 relative z-10">
         <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-center font-mono">
           <p className="text-[0.6rem] text-slate-400 uppercase">STREAK</p>
-          <p className="text-amber-400 font-bold text-lg">🔥 {currentStreak} d</p>
+          <p className="text-amber-400 font-bold text-lg flex items-center justify-center gap-1">
+            <Flame className="w-4 h-4 text-amber-400" /> {currentStreak} d
+          </p>
         </div>
         <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-center font-mono">
           <p className="text-[0.6rem] text-slate-400 uppercase">COMPLETED</p>
-          <p className="text-cyan-400 font-bold text-lg">⚔️ {totalCompleted}</p>
+          <p className="text-cyan-400 font-bold text-lg flex items-center justify-center gap-1">
+            <Swords className="w-4 h-4 text-cyan-400" /> {totalCompleted}
+          </p>
         </div>
         <div className="p-3 bg-slate-900/60 border border-slate-800 rounded-lg text-center font-mono">
           <p className="text-[0.6rem] text-slate-400 uppercase">RATE</p>
           <p className="text-emerald-400 font-bold text-lg">{overallCompletion}%</p>
         </div>
       </div>
+
 
       {/* HP, MP & Experience Gauges */}
 

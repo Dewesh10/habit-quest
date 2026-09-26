@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react"
+import { Trophy, AlertTriangle } from "lucide-react"
+
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { useSettings } from "../../hooks/useSettings"
@@ -453,7 +455,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             {bestHabit ? (
               <div className="flex items-center gap-3 bg-blue-500/5 border border-blue-900/30 rounded-lg px-3 py-2.5">
-                <span className="text-xl">🥇</span>
+                <Trophy className="w-5 h-5 text-amber-400 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">{bestHabit.name}</p>
                   <p className="text-slate-500 text-xs">Top performer this month</p>
@@ -464,7 +466,7 @@ export default function Dashboard() {
             )}
             {worstHabit && worstHabit.id !== bestHabit?.id && (
               <div className="flex items-center gap-3 bg-orange-500/5 border border-orange-900/30 rounded-lg px-3 py-2.5">
-                <span className="text-xl">⚠️</span>
+                <AlertTriangle className="w-5 h-5 text-amber-500 shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="text-white text-sm font-medium truncate">{worstHabit.name}</p>
                   <p className="text-slate-500 text-xs">Needs attention</p>
@@ -490,12 +492,13 @@ export default function Dashboard() {
                   key={a.id}
                   className="flex items-center gap-3 bg-blue-500/5 border border-blue-900/30 rounded-lg px-3 py-2.5"
                 >
-                  <span className="text-xl">🏆</span>
+                  <Trophy className="w-5 h-5 text-cyan-400 shrink-0" />
                   <p className="text-white text-sm font-medium truncate">{a.name}</p>
                 </div>
               ))}
             </div>
           )}
+
         </div>
       </div>
 

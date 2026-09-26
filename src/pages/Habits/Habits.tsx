@@ -1,6 +1,7 @@
 import { useState } from "react"
-import { icons } from "lucide-react"
+import { icons, Flame, Trophy } from "lucide-react"
 import { motion } from "framer-motion"
+
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { getHabitColorClasses } from "../../utils/colorMap"
@@ -132,19 +133,20 @@ export default function Habits() {
           <div className="hero-panel relative px-5 py-4 flex-1">
             <CornerBrackets />
             <p className="system-panel-header mb-1">Current Streak</p>
-            <p className="font-display text-3xl font-bold text-white">
-              &#128293; {currentStreak} <span className="text-lg text-slate-400 font-normal">days</span>
+            <p className="font-display text-3xl font-bold text-white flex items-center gap-2">
+              <Flame className="w-7 h-7 text-amber-400" /> {currentStreak} <span className="text-lg text-slate-400 font-normal">days</span>
             </p>
           </div>
           <div className="hero-panel relative px-5 py-4 flex-1">
             <CornerBrackets />
             <p className="system-panel-header mb-1">Longest Streak</p>
-            <p className="font-display text-3xl font-bold text-white">
-              &#127942; {longestStreak} <span className="text-lg text-slate-400 font-normal">days</span>
+            <p className="font-display text-3xl font-bold text-white flex items-center gap-2">
+              <Trophy className="w-7 h-7 text-cyan-400" /> {longestStreak} <span className="text-lg text-slate-400 font-normal">days</span>
             </p>
           </div>
         </div>
       )}
+
 
       {activeHabits.length === 0 ? (
         <div className="text-center py-16">
