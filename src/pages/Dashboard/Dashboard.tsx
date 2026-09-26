@@ -1,13 +1,18 @@
-﻿import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { useSettings } from "../../hooks/useSettings"
 import { useAchievements } from "../../hooks/useAchievements"
 import { useNotificationLog } from "../../hooks/useNotificationLog"
+import { useHunterSystem } from "../../hooks/useHunterSystem"
+
 import LevelUpOverlay from "../../components/dashboard/LevelUpOverlay"
 import RankUpOverlay from "../../components/dashboard/RankUpOverlay"
 import GatePanel from "../../components/dashboard/GatePanel"
 import GateClearOverlay from "../../components/dashboard/GateClearOverlay"
+import DailyQuestPanel from "../../components/dashboard/DailyQuestPanel"
+import PenaltyZoneOverlay from "../../components/dashboard/PenaltyZoneOverlay"
+
 import { getMonthDates, getMonthName, todayISO, isScheduledOn } from "../../utils/date"
 import {
   calculateOverallCompletion,
@@ -22,7 +27,8 @@ import {
 import { getRank } from "../../utils/rank"
 import { getSystemMessage } from "../../utils/systemMessage"
 import { getNeglectedHabits } from "../../utils/penalty"
-import { playQuestCompleteSound, playLevelUpSound } from "../../utils/sound"
+import { soundEngine } from "../../utils/soundEngine"
+
 import HabitGrid from "../../components/calendar/HabitGrid"
 import TodayView from "../../components/dashboard/TodayView"
 import StatusWindow from "../../components/dashboard/StatusWindow"
@@ -40,6 +46,19 @@ export default function Dashboard() {
     completions
   )
   const { entries: logEntries, loaded: logLoaded, logEvent } = useNotificationLog()
+
+  const {
+    stats,
+    dailyQuests,
+    penalty,
+    allocateAP,
+    awardAP,
+    incrementDailyQuest,
+    triggerPenalty,
+    progressPenaltyQuest,
+    clearPenalty,
+    getCombatPower,
+  } = useHunterSystem()
 
   const [showLevelUp, setShowLevelUp] = useState(false)
   const [levelUpValue, setLevelUpValue] = useState(1)
@@ -66,6 +85,9 @@ export default function Dashboard() {
   const goalProgressEarly = goalEarly > 0 ? Math.min(100, Math.round((totalCompletedEarly / goalEarly) * 100)) : 0
   const gateCleared = goalProgressEarly >= 100
 
+  const combatPower = getCombatPower(level)
+
+  // Level up trigger
   useEffect(() => {
     if (!allLoaded) return
 
@@ -77,16 +99,17 @@ export default function Dashboard() {
     if (level > prevLevel.current) {
       setLevelUpValue(level)
       setShowLevelUp(true)
-      if (settings.soundEnabled) playLevelUpSound()
+      awardAP(3) // +3 free AP on level up
+      if (settings.soundEnabled) soundEngine.playLevelUpFanfare()
       logEvent("levelup", `Level Up! You're now Level ${level}`)
       prevLevel.current = level
       return
     }
 
     prevLevel.current = level
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level, allLoaded, settings.soundEnabled])
+  }, [level, allLoaded, settings.soundEnabled, awardAP, logEvent])
 
+  // Rank up trigger
   useEffect(() => {
     if (!allLoaded) return
 
@@ -98,16 +121,16 @@ export default function Dashboard() {
     if (rankInfo.rank !== prevRank.current) {
       setRankUpInfo({ rank: rankInfo.rank, title: rankInfo.title })
       setShowRankUp(true)
-      if (settings.soundEnabled) playLevelUpSound()
+      if (settings.soundEnabled) soundEngine.playLevelUpFanfare()
       logEvent("levelup", `Rank Advanced: ${rankInfo.rank}-Rank Hunter`, rankInfo.title)
       prevRank.current = rankInfo.rank
       return
     }
 
     prevRank.current = rankInfo.rank
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rankInfo.rank, allLoaded, settings.soundEnabled])
+  }, [rankInfo.rank, allLoaded, settings.soundEnabled, logEvent])
 
+  // Gate clear trigger
   useEffect(() => {
     if (!allLoaded) return
 
@@ -118,14 +141,14 @@ export default function Dashboard() {
 
     if (gateCleared && !prevGateCleared.current) {
       setShowGateClear(true)
-      if (settings.soundEnabled) playLevelUpSound()
+      if (settings.soundEnabled) soundEngine.playLevelUpFanfare()
       logEvent("achievement", "Gate Cleared", "Monthly goal fully completed")
     }
 
     prevGateCleared.current = gateCleared
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gateCleared, allLoaded, settings.soundEnabled])
+  }, [gateCleared, allLoaded, settings.soundEnabled, logEvent])
 
+  // Achievements unlock trigger
   useEffect(() => {
     if (!newlyUnlocked) return
     setQuestNotif({
@@ -139,8 +162,7 @@ export default function Dashboard() {
       clearNewlyUnlocked()
     }, 2800)
     return () => clearTimeout(timer)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [newlyUnlocked])
+  }, [newlyUnlocked, clearNewlyUnlocked, logEvent])
 
   function handleQuestComplete(habitName: string, xpGained: number) {
     setQuestNotif({
@@ -148,13 +170,13 @@ export default function Dashboard() {
       subtext: `+${xpGained} XP gained`,
     })
     setQuestNotifVisible(true)
-    if (settings.soundEnabled) playQuestCompleteSound()
+    if (settings.soundEnabled) soundEngine.playQuestChime()
     logEvent("quest", `Quest Complete: ${habitName}`, `+${xpGained} XP gained`)
     setTimeout(() => setQuestNotifVisible(false), 2200)
   }
 
   if (!allLoaded) {
-    return <p className="text-slate-400">Loading...</p>
+    return <p className="text-slate-400 font-mono p-6">&gt; Initializing System...</p>
   }
 
   const today = new Date()
@@ -177,6 +199,7 @@ export default function Dashboard() {
 
   const bestHabit = calculateBestHabit(habits, completions, monthDates)
   const worstHabit = calculateWorstHabit(habits, completions, monthDates)
+
   const completedCountByCategory = new Map<string, number>()
   for (const c of completions) {
     if (!c.completed) continue
@@ -188,9 +211,7 @@ export default function Dashboard() {
     )
   }
   const statAllocations = buildStatAllocations(habits, completedCountByCategory)
-
   const goal = settings.monthlyGoal
-  const goalProgress = goal > 0 ? Math.min(100, Math.round((totalCompleted / goal) * 100)) : 0
 
   const recentAchievements = achievements
     .filter((a) => a.unlockedAt)
@@ -199,6 +220,13 @@ export default function Dashboard() {
 
   return (
     <div>
+      {/* Penalty Warning Overlay */}
+      <PenaltyZoneOverlay
+        penalty={penalty}
+        onProgressPenalty={progressPenaltyQuest}
+        onClearPenalty={clearPenalty}
+      />
+
       {questNotif && (
         <SystemNotification
           message={questNotif.message}
@@ -223,17 +251,29 @@ export default function Dashboard() {
         <GateClearOverlay onDone={() => setShowGateClear(false)} />
       )}
 
-      <h1 className="text-2xl font-bold text-white">Habit Quest</h1>
-      <p className="text-slate-400 mb-2">
-        {getMonthName(month)} {year} · {todayISO()}
-      </p>
-      <p className="text-blue-400/90 text-sm font-mono mb-6">&gt; {systemMessage}</p>
-      {neglectedHabits.length > 0 && (
-        <p className="text-red-400/90 text-sm font-mono mb-6 -mt-4">
-          &gt; Penalty: {neglectedHabits.length} quest{neglectedHabits.length === 1 ? "" : "s"} neglected yesterday.
-        </p>
-      )}
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h1 className="text-2xl font-bold font-display text-white uppercase tracking-wider">
+            Solo Leveling System
+          </h1>
+          <p className="text-slate-400 text-xs font-mono">
+            {getMonthName(month)} {year} &middot; {todayISO()}
+          </p>
+        </div>
 
+        {neglectedHabits.length > 0 && !penalty.active && (
+          <button
+            onClick={() => triggerPenalty(`${neglectedHabits.length} quests neglected yesterday.`)}
+            className="px-3 py-1 bg-red-500/20 text-red-400 border border-red-500/40 rounded font-mono text-xs uppercase animate-pulse"
+          >
+            TRIGGER EMERGENCY PENALTY
+          </button>
+        )}
+      </div>
+
+      <p className="text-cyan-400 text-xs font-mono mb-6">&gt; {systemMessage}</p>
+
+      {/* Upgraded Hunter Status Window */}
       <StatusWindow
         level={level}
         xp={xp}
@@ -243,8 +283,16 @@ export default function Dashboard() {
         currentStreak={currentStreak}
         totalCompleted={totalCompleted}
         equippedTitle={achievements.find((a) => a.id === settings.equippedTitle)?.title ?? null}
+        stats={stats}
+        combatPower={combatPower}
+        penalty={penalty}
+        onAllocateAP={allocateAP}
       />
 
+      {/* Fixed Non-skippable Daily Quests */}
+      <DailyQuestPanel quests={dailyQuests} onIncrement={incrementDailyQuest} />
+
+      {/* Today's User Quests */}
       <TodayView
         habits={habits}
         completions={completions}
@@ -269,7 +317,7 @@ export default function Dashboard() {
                 </div>
               </div>
             ) : (
-              <p className="text-slate-500 text-sm">Not enough data yet.</p>
+              <p className="text-slate-500 text-sm font-mono">Not enough data yet.</p>
             )}
             {worstHabit && worstHabit.id !== bestHabit?.id && (
               <div className="flex items-center gap-3 bg-orange-500/5 border border-orange-900/30 rounded-lg px-3 py-2.5">
@@ -281,7 +329,7 @@ export default function Dashboard() {
               </div>
             )}
           </div>
-          <p className="font-display text-slate-400 text-xs mt-4 pt-4 border-t border-blue-900/20">
+          <p className="font-mono text-slate-400 text-xs mt-4 pt-4 border-t border-blue-900/20">
             {remaining} quests remaining this month
           </p>
         </div>
@@ -289,7 +337,7 @@ export default function Dashboard() {
         <div className="system-panel p-4 md:p-6">
           <p className="system-panel-header mb-4">Recent Titles</p>
           {recentAchievements.length === 0 ? (
-            <p className="text-slate-500 text-sm">
+            <p className="text-slate-500 text-sm font-mono">
               Complete quests to unlock titles.
             </p>
           ) : (
@@ -321,13 +369,3 @@ export default function Dashboard() {
     </div>
   )
 }
-
-
-
-
-
-
-
-
-
-

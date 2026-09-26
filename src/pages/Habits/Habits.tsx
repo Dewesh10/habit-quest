@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { icons } from "lucide-react"
 import { motion } from "framer-motion"
 import { useHabits } from "../../hooks/useHabits"
@@ -66,9 +66,10 @@ const cardVariants = {
     opacity: 1,
     y: 0,
     scale: 1,
-    transition: { delay: i * 0.05, type: "spring", stiffness: 300, damping: 26 },
+    transition: { delay: i * 0.05, type: "spring" as const, stiffness: 300, damping: 26 },
   }),
 }
+
 
 export default function Habits() {
   const { habits, loaded, addHabit, updateHabit } = useHabits()

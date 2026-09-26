@@ -1,9 +1,12 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Sidebar from "./components/layout/Sidebar"
 import BottomNav from "./components/layout/BottomNav"
 import Dashboard from "./pages/Dashboard/Dashboard"
 import Habits from "./pages/Habits/Habits"
+import Dungeons from "./pages/Dungeons/Dungeons"
+import InventoryShop from "./pages/InventoryShop/InventoryShop"
+import Skills from "./pages/Skills/Skills"
 import Analytics from "./pages/Analytics/Analytics"
 import Achievements from "./pages/Achievements/Achievements"
 import Settings from "./pages/Settings/Settings"
@@ -14,6 +17,59 @@ import { ToastProvider } from "./components/common/Toast"
 import SystemOracle from "./components/common/SystemOracle"
 import OnboardingFlow from "./components/onboarding/OnboardingFlow"
 import { storageService } from "./services/storageService"
+import { useHunterSystem } from "./hooks/useHunterSystem"
+
+function AppContent() {
+  const {
+    gold,
+    inventory,
+    gates,
+    shadows,
+    skills,
+    buyItem,
+    toggleEquipWeapon,
+    usePotion,
+    clearGate,
+    extractShadow,
+    assignShadowCategory,
+  } = useHunterSystem()
+
+  return (
+    <Routes>
+      <Route path="/" element={<Dashboard />} />
+      <Route path="/habits" element={<Habits />} />
+      <Route
+        path="/dungeons"
+        element={
+          <Dungeons
+            gates={gates}
+            shadows={shadows}
+            onClearGate={clearGate}
+            onExtractShadow={extractShadow}
+            onAssignCategory={assignShadowCategory}
+          />
+        }
+      />
+
+      <Route
+        path="/shop"
+        element={
+          <InventoryShop
+            gold={gold}
+            inventory={inventory}
+            onBuyItem={buyItem}
+            onToggleEquip={toggleEquipWeapon}
+            onUsePotion={usePotion}
+          />
+        }
+      />
+      <Route path="/skills" element={<Skills skills={skills} />} />
+      <Route path="/analytics" element={<Analytics />} />
+      <Route path="/achievements" element={<Achievements />} />
+      <Route path="/settings" element={<Settings />} />
+    </Routes>
+  )
+}
 
 function App() {
   const [booted, setBooted] = useState(() => sessionStorage.getItem("hq-booted") === "true")
@@ -44,13 +100,7 @@ function App() {
           <Sidebar />
           <main className="flex-1 min-w-0 w-full overflow-x-hidden p-6 pb-24 md:pb-6">
             <PageTransition>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/habits" element={<Habits />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/achievements" element={<Achievements />} />
-                <Route path="/settings" element={<Settings />} />
-              </Routes>
+              <AppContent />
             </PageTransition>
           </main>
           <BottomNav />
@@ -62,4 +112,3 @@ function App() {
 }
 
 export default App
-

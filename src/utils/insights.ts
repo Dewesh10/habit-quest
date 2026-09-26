@@ -1,4 +1,4 @@
-﻿import type { Habit, Completion } from "../types"
+import type { Habit, Completion } from "../types"
 import { isScheduledOn, toISODate, getMonthDates } from "./date"
 import {
   calculateHabitStreak,
@@ -158,10 +158,11 @@ export interface GoalProjection {
 }
 
 export function projectMonthlyGoal(
-  habits: Habit[],
+  _habits: Habit[],
   completions: Completion[],
   goal: number
 ): GoalProjection {
+
   const today = new Date()
   const monthDates = getMonthDates(today.getFullYear(), today.getMonth())
   const daysElapsed = today.getDate()

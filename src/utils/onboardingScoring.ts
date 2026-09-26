@@ -1,4 +1,4 @@
-﻿import type { QuizQuestion, StatKey } from "../data/onboardingQuiz"
+import type { StatKey } from "../data/onboardingQuiz"
 import { QUIZ_QUESTIONS } from "../data/onboardingQuiz"
 import { calculateLevel } from "./stats"
 

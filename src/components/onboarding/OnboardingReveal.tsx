@@ -1,4 +1,4 @@
-﻿import { useState } from "react"
+import { useState } from "react"
 import { icons } from "lucide-react"
 import {
   Radar,
@@ -50,7 +50,6 @@ export default function OnboardingReveal({ name, answers, onDone }: OnboardingRe
     value,
   }))
 
-  const maxStat = Math.max(...Object.values(stats), 20)
 
   const pages = [
     // Page 0: narrative reflection

@@ -1,8 +1,35 @@
-﻿import type { Habit, Completion, Settings, Achievement, NotificationEntry } from "../types"
+import type {
+  Habit,
+  Completion,
+  Settings,
+  Achievement,
+  NotificationEntry,
+  HunterStats,
+  InventoryItem,
+  DungeonGate,
+  ShadowSoldier,
+  Skill,
+  DailyQuestFixed,
+  PenaltyState,
+} from "../types"
+import { localAdapter } from "./storage/localAdapter"
+import {
+  migrateSchema,
+  DEFAULT_HUNTER_STATS,
+  DEFAULT_GOLD,
+  DEFAULT_INVENTORY,
+  DEFAULT_DUNGEON_GATES,
+  DEFAULT_SHADOW_ARMY,
+  DEFAULT_SKILLS,
+  DEFAULT_DAILY_QUESTS,
+  DEFAULT_PENALTY_STATE,
+} from "./storage/migrations"
 
-const PREFIX = "habitQuest:v1:"
+
+const PREFIX = "habitQuest:v2:"
 
 const KEYS = {
+  version: PREFIX + "schema_version",
   habits: PREFIX + "habits",
   completions: PREFIX + "completions",
   settings: PREFIX + "settings",
@@ -10,87 +37,134 @@ const KEYS = {
   notifications: PREFIX + "notifications",
   userName: PREFIX + "userName",
   onboarded: PREFIX + "onboarded",
+  hunterStats: PREFIX + "hunterStats",
+  gold: PREFIX + "gold",
+  inventory: PREFIX + "inventory",
+  dungeonGates: PREFIX + "dungeonGates",
+  shadowArmy: PREFIX + "shadowArmy",
+  skills: PREFIX + "skills",
+  dailyQuests: PREFIX + "dailyQuests",
+  penaltyState: PREFIX + "penaltyState",
 }
 
 const MAX_NOTIFICATIONS = 50
 
-function safeGet<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return fallback
-    return JSON.parse(raw) as T
-  } catch {
-    console.warn(`Failed to read ${key} from localStorage, using fallback.`)
-    return fallback
-  }
-}
-
-function safeSet<T>(key: string, value: T): void {
-  try {
-    localStorage.setItem(key, JSON.stringify(value))
-  } catch {
-    console.error(`Failed to write ${key} to localStorage.`)
-  }
-}
+// Perform initial migration on load
+migrateSchema(localAdapter, KEYS.version)
 
 export const storageService = {
   getHabits(): Habit[] {
-    return safeGet<Habit[]>(KEYS.habits, [])
+    return localAdapter.get<Habit[]>(KEYS.habits, [])
   },
   saveHabits(habits: Habit[]): void {
-    safeSet(KEYS.habits, habits)
+    localAdapter.set(KEYS.habits, habits)
   },
 
   getCompletions(): Completion[] {
-    return safeGet<Completion[]>(KEYS.completions, [])
+    return localAdapter.get<Completion[]>(KEYS.completions, [])
   },
   saveCompletions(completions: Completion[]): void {
-    safeSet(KEYS.completions, completions)
+    localAdapter.set(KEYS.completions, completions)
   },
 
   getSettings(): Settings {
-    return safeGet<Settings>(KEYS.settings, {
+    return localAdapter.get<Settings>(KEYS.settings, {
       theme: "dark",
       weekStartsOn: 1,
       defaultXP: 10,
-      soundEnabled: false,
+      soundEnabled: true,
       monthlyGoal: 300,
       equippedTitle: null,
     })
   },
   saveSettings(settings: Settings): void {
-    safeSet(KEYS.settings, settings)
+    localAdapter.set(KEYS.settings, settings)
   },
 
   getAchievements(): Achievement[] {
-    return safeGet<Achievement[]>(KEYS.achievements, [])
+    return localAdapter.get<Achievement[]>(KEYS.achievements, [])
   },
   saveAchievements(achievements: Achievement[]): void {
-    safeSet(KEYS.achievements, achievements)
+    localAdapter.set(KEYS.achievements, achievements)
   },
 
   getNotifications(): NotificationEntry[] {
-    return safeGet<NotificationEntry[]>(KEYS.notifications, [])
+    return localAdapter.get<NotificationEntry[]>(KEYS.notifications, [])
   },
   saveNotifications(entries: NotificationEntry[]): void {
-    // Keep only the most recent MAX_NOTIFICATIONS to prevent unbounded growth.
     const trimmed = entries.slice(-MAX_NOTIFICATIONS)
-    safeSet(KEYS.notifications, trimmed)
+    localAdapter.set(KEYS.notifications, trimmed)
   },
 
   getUserName(): string | null {
-    return safeGet<string | null>(KEYS.userName, null)
+    return localAdapter.get<string | null>(KEYS.userName, null)
   },
   saveUserName(name: string): void {
-    safeSet(KEYS.userName, name)
+    localAdapter.set(KEYS.userName, name)
   },
 
   getOnboarded(): boolean {
-    return safeGet<boolean>(KEYS.onboarded, false)
+    return localAdapter.get<boolean>(KEYS.onboarded, false)
   },
   setOnboarded(value: boolean): void {
-    safeSet(KEYS.onboarded, value)
+    localAdapter.set(KEYS.onboarded, value)
+  },
+
+  // --- Solo Leveling Extensions ---
+
+  getHunterStats(): HunterStats {
+    return localAdapter.get<HunterStats>(KEYS.hunterStats, DEFAULT_HUNTER_STATS)
+  },
+  saveHunterStats(stats: HunterStats): void {
+    localAdapter.set(KEYS.hunterStats, stats)
+  },
+
+  getGold(): number {
+    return localAdapter.get<number>(KEYS.gold, DEFAULT_GOLD)
+  },
+  saveGold(gold: number): void {
+    localAdapter.set(KEYS.gold, gold)
+  },
+
+  getInventory(): InventoryItem[] {
+    return localAdapter.get<InventoryItem[]>(KEYS.inventory, DEFAULT_INVENTORY)
+  },
+  saveInventory(inventory: InventoryItem[]): void {
+    localAdapter.set(KEYS.inventory, inventory)
+  },
+
+  getDungeonGates(): DungeonGate[] {
+    return localAdapter.get<DungeonGate[]>(KEYS.dungeonGates, DEFAULT_DUNGEON_GATES)
+  },
+  saveDungeonGates(gates: DungeonGate[]): void {
+    localAdapter.set(KEYS.dungeonGates, gates)
+  },
+
+  getShadowArmy(): ShadowSoldier[] {
+    return localAdapter.get<ShadowSoldier[]>(KEYS.shadowArmy, DEFAULT_SHADOW_ARMY)
+  },
+  saveShadowArmy(shadows: ShadowSoldier[]): void {
+    localAdapter.set(KEYS.shadowArmy, shadows)
+  },
+
+  getSkills(): Skill[] {
+    return localAdapter.get<Skill[]>(KEYS.skills, DEFAULT_SKILLS)
+  },
+  saveSkills(skills: Skill[]): void {
+    localAdapter.set(KEYS.skills, skills)
+  },
+
+  getDailyQuests(): DailyQuestFixed[] {
+    return localAdapter.get<DailyQuestFixed[]>(KEYS.dailyQuests, DEFAULT_DAILY_QUESTS)
+  },
+  saveDailyQuests(quests: DailyQuestFixed[]): void {
+    localAdapter.set(KEYS.dailyQuests, quests)
+  },
+
+  getPenaltyState(): PenaltyState {
+    return localAdapter.get<PenaltyState>(KEYS.penaltyState, DEFAULT_PENALTY_STATE)
+  },
+  savePenaltyState(penalty: PenaltyState): void {
+    localAdapter.set(KEYS.penaltyState, penalty)
   },
 }
-
-

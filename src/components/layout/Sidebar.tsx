@@ -1,16 +1,29 @@
 import { NavLink } from "react-router-dom"
-import { LayoutDashboard, ListChecks, BarChart3, Trophy, Settings } from "lucide-react"
+import {
+  LayoutDashboard,
+  ListChecks,
+  Swords,
+  ShoppingBag,
+  Zap,
+  BarChart3,
+  Trophy,
+  Settings,
+  Sparkles,
+} from "lucide-react"
 import { useHabits } from "../../hooks/useHabits"
 import { useCompletions } from "../../hooks/useCompletions"
 import { calculateXP, calculateLevel } from "../../utils/stats"
 import { getRank } from "../../utils/rank"
 
 const navItems = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/", label: "Status Window", icon: LayoutDashboard },
   { to: "/habits", label: "Quest Log", icon: ListChecks },
+  { to: "/dungeons", label: "Dungeons & Shadows", icon: Swords },
+  { to: "/shop", label: "Inventory & Shop", icon: ShoppingBag },
+  { to: "/skills", label: "Skills Tree", icon: Zap },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/achievements", label: "Titles", icon: Trophy },
-  { to: "/settings", label: "Settings", icon: Settings },
+  { to: "/settings", label: "System Config", icon: Settings },
 ]
 
 export default function Sidebar() {
@@ -24,22 +37,25 @@ export default function Sidebar() {
   const pct = Math.min(100, ((xp - currentLevelXP) / (nextLevelXP - currentLevelXP)) * 100)
 
   return (
-    <aside className="hidden md:flex flex-col w-60 shrink-0 bg-slate-900 border-r border-blue-900/30 h-screen sticky top-0 px-4 py-6">
-      <h1 className="font-display text-xl font-bold text-blue-400 mb-8 px-2 tracking-wide uppercase">
-        Habit Quest
-      </h1>
+    <aside className="hidden md:flex flex-col w-64 shrink-0 bg-slate-950 border-r border-cyan-900/40 h-screen sticky top-0 px-4 py-6 z-20">
+      <div className="flex items-center gap-2 mb-6 px-2">
+        <Sparkles className="w-5 h-5 text-cyan-400 animate-pulse" />
+        <h1 className="font-display text-xl font-bold text-white tracking-wider uppercase">
+          SOLO LEVELING
+        </h1>
+      </div>
 
-      <nav className="flex flex-col gap-1">
+      <nav className="flex flex-col gap-1 overflow-y-auto">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             end={to === "/"}
             className={({ isActive }) =>
-              `flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium border-l-2 ${
+              `flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs font-mono uppercase tracking-wider transition-all border-l-2 ${
                 isActive
-                  ? "bg-blue-500/20 text-blue-400 border-blue-400 neon-glow"
-                  : "text-slate-300 border-transparent hover:text-white hover:bg-slate-800/80"
+                  ? "bg-cyan-500/10 text-cyan-300 border-cyan-400 shadow-[0_0_16px_rgba(56,189,248,0.3)]"
+                  : "text-slate-400 border-transparent hover:text-white hover:bg-slate-900"
               }`
             }
           >
@@ -50,8 +66,8 @@ export default function Sidebar() {
       </nav>
 
       <div className="mt-auto hero-panel p-4 relative">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="relative w-12 h-12 shrink-0">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="relative w-10 h-10 shrink-0">
             <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
               <polygon
                 points="50,4 93,27 93,73 50,96 7,73 7,27"
@@ -61,19 +77,19 @@ export default function Sidebar() {
               />
             </svg>
             <div className="absolute inset-0 flex items-center justify-center">
-              <span className="font-display text-lg font-bold text-blue-300 drop-shadow-[0_0_6px_rgba(56,189,248,0.8)]">
+              <span className="font-display text-base font-bold text-cyan-300">
                 {rank}
               </span>
             </div>
           </div>
           <div className="min-w-0">
-            <p className="text-white text-sm font-semibold truncate">{title}</p>
-            <p className="text-slate-500 text-xs font-mono">Lv. {level}</p>
+            <p className="text-white text-xs font-bold font-mono truncate">{title}</p>
+            <p className="text-cyan-400 text-[0.65rem] font-mono">Lv. {level}</p>
           </div>
         </div>
-        <div className="h-1.5 rounded-full bg-slate-800 overflow-hidden border border-blue-900/40">
+        <div className="h-1.5 rounded-full bg-slate-900 overflow-hidden border border-cyan-900/40">
           <div
-            className="h-full bg-gradient-to-r from-blue-600 to-cyan-400"
+            className="h-full bg-cyan-400"
             style={{ width: `${pct}%`, boxShadow: "0 0 6px rgba(56,189,248,0.6)" }}
           />
         </div>
