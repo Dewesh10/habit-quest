@@ -1,6 +1,7 @@
 import { Shield, Sword, Wand2, Zap, Crown, Lock, Sparkles, CheckCircle2 } from "lucide-react"
 import type { ShadowSoldier, ShadowId } from "../../types"
 import CornerBrackets from "../common/CornerBrackets"
+import { soundEngine } from "../../utils/soundEngine"
 
 
 interface ShadowArmyProps {
@@ -114,8 +115,12 @@ export default function ShadowArmy({ shadows, onExtractShadow, onAssignCategory 
               </div>
             ) : (
               <button
-                onClick={() => onExtractShadow(shadow.id)}
-                className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all"
+                onClick={() => {
+                  soundEngine.playAriseSound()
+                  soundEngine.speakSystemDirective(`ARISE! Shadow ${shadow.name} extracted into your Monarch army.`)
+                  onExtractShadow(shadow.id)
+                }}
+                className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(168,85,247,0.5)] transition-all active:scale-95"
               >
                 ARISE (EXTRACT SHADOW)
               </button>

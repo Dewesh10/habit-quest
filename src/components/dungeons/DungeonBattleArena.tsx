@@ -45,6 +45,7 @@ export default function DungeonBattleArena({
     let isCrit = false
     let logMsg = ""
 
+    soundEngine.playBossHit()
     if (type === "basic") {
       dmg = Math.floor(Math.random() * 20 + playerLevel * 3 + 15)
       logMsg = `You executed Knight Killer Dagger Slash dealing ${dmg} damage!`

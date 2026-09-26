@@ -1,7 +1,8 @@
-import { useState } from "react"
-import { GraduationCap, BookOpen, CheckCircle2, Trophy, Award } from "lucide-react"
+import { useState, useEffect } from "react"
+import { GraduationCap, BookOpen, CheckCircle2, Trophy, Award, Play, Pause, RotateCcw, Timer } from "lucide-react"
 import type { CollegeProfile, CollegeMajor } from "../../types"
 import CornerBrackets from "../common/CornerBrackets"
+import { soundEngine } from "../../utils/soundEngine"
 
 interface CollegeSystemPanelProps {
   profile: CollegeProfile
@@ -19,6 +20,80 @@ const MAJORS: CollegeMajor[] = [
   "Arts & Design",
   "General Academic",
 ]
+
+function PomodoroChamber() {
+  const [seconds, setSeconds] = useState(25 * 60)
+  const [isActive, setIsActive] = useState(false)
+
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null
+    if (isActive && seconds > 0) {
+      interval = setInterval(() => setSeconds((s) => s - 1), 1000)
+    } else if (seconds === 0 && isActive) {
+      setIsActive(false)
+      soundEngine.playPomodoroTick()
+      soundEngine.speakSystemDirective("Pomodoro Focus Chamber cleared. INT and PER stat points awarded.")
+    }
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [isActive, seconds])
+
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  const timeDisplay = `${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`
+
+  return (
+    <div className="mb-6 p-4 rounded-xl bg-slate-950/70 border border-purple-900/60 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <div className="p-3 rounded-lg bg-purple-950/80 border border-purple-500/50">
+          <Timer className="w-6 h-6 text-purple-400 animate-pulse" />
+        </div>
+        <div>
+          <span className="text-[0.65rem] font-mono text-purple-300 uppercase tracking-widest block">
+            POMODORO FOCUS CHAMBER
+          </span>
+          <p className="text-white text-xs text-slate-400">25-min Deep Focus Dungeon &middot; Granting +2 INT on completion</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-4">
+        <span className="font-mono text-3xl font-extrabold text-cyan-300 tracking-wider">
+          {timeDisplay}
+        </span>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => {
+              soundEngine.playClick()
+              setIsActive(!isActive)
+            }}
+            className={`p-2.5 rounded-lg font-bold font-mono text-xs flex items-center gap-1.5 transition-all shadow-[0_0_12px_rgba(168,85,247,0.4)] ${
+              isActive
+                ? "bg-amber-500 hover:bg-amber-400 text-slate-950"
+                : "bg-purple-600 hover:bg-purple-500 text-white"
+            }`}
+          >
+            {isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            {isActive ? "PAUSE" : "START"}
+          </button>
+
+          <button
+            onClick={() => {
+              soundEngine.playClick()
+              setIsActive(false)
+              setSeconds(25 * 60)
+            }}
+            className="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white transition-colors"
+            title="Reset Timer"
+          >
+            <RotateCcw className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export default function CollegeSystemPanel({
   profile,
@@ -80,6 +155,9 @@ export default function CollegeSystemPanel({
           <span className="text-purple-300 font-bold text-sm">{profile.targetGPA.toFixed(1)} / 4.0</span>
         </div>
       </div>
+
+      {/* Pomodoro Focus Dungeon Chamber */}
+      <PomodoroChamber />
 
       {/* Academic Daily Quests Grid */}
       <div className="mb-6">

@@ -13,6 +13,8 @@ import { storageService } from "./services/storageService"
 import { useHunterSystem } from "./hooks/useHunterSystem"
 
 
+import SystemVoiceOverlay from "./components/common/SystemVoiceOverlay"
+
 // Lazy loaded routes for per-route code splitting
 const Dashboard = lazy(() => import("./pages/Dashboard/Dashboard"))
 const Habits = lazy(() => import("./pages/Habits/Habits"))
@@ -130,6 +132,7 @@ function App() {
                     </main>
                     <BottomNav />
                     <SystemOracle />
+                    <SystemVoiceOverlay />
                   </div>
                 }
               />

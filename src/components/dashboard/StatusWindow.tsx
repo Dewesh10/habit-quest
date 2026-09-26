@@ -1,5 +1,6 @@
 import { Plus, AlertTriangle, Zap, Dumbbell, Brain, Heart, Eye, Flame, Swords } from "lucide-react"
 import { getRank } from "../../utils/rank"
+import { soundEngine } from "../../utils/soundEngine"
 import type { HunterStats, PenaltyState } from "../../types"
 
 
@@ -220,8 +221,11 @@ export default function StatusWindow({
 
               {stats.availableAP > 0 && (
                 <button
-                  onClick={() => onAllocateAP(item.key)}
-                  className="w-full py-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono text-[0.65rem] rounded flex items-center justify-center gap-1 transition-all shadow-[0_0_8px_rgba(56,189,248,0.5)]"
+                  onClick={() => {
+                    soundEngine.playStatAllocated()
+                    onAllocateAP(item.key)
+                  }}
+                  className="w-full py-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold font-mono text-[0.65rem] rounded flex items-center justify-center gap-1 transition-all shadow-[0_0_8px_rgba(56,189,248,0.5)] active:scale-95"
                 >
                   <Plus className="w-3 h-3" /> +1 AP
                 </button>
