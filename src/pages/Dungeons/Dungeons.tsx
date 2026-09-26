@@ -1,8 +1,9 @@
+import { useState } from "react"
 import { Swords, Sparkles, CheckCircle2 } from "lucide-react"
 import type { DungeonGate, ShadowSoldier, ShadowId } from "../../types"
 import CornerBrackets from "../../components/common/CornerBrackets"
 import ShadowArmy from "../../components/dungeons/ShadowArmy"
-
+import DungeonBattleArena from "../../components/dungeons/DungeonBattleArena"
 
 interface DungeonsProps {
   gates: DungeonGate[]
@@ -26,8 +27,22 @@ export default function Dungeons({
   onExtractShadow,
   onAssignCategory,
 }: DungeonsProps) {
+  const [activeBattleGate, setActiveBattleGate] = useState<DungeonGate | null>(null)
+
   return (
     <div className="space-y-8">
+      {/* Battle Arena Modal */}
+      {activeBattleGate && (
+        <DungeonBattleArena
+          gate={activeBattleGate}
+          playerLevel={15}
+          shadows={shadows}
+          onBattleVictory={onClearGate}
+          onExtractShadow={onExtractShadow}
+          onClose={() => setActiveBattleGate(null)}
+        />
+      )}
+
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display text-2xl font-bold text-white uppercase tracking-wider">
@@ -153,34 +168,12 @@ export default function Dungeons({
 
               {/* Action Buttons */}
               <div className="flex gap-2 justify-end">
-                {!gate.cleared && canFightBoss && (
-                  <button
-                    onClick={() => {
-                      onClearGate(gate.id)
-                      if (gate.shadowRewardId) {
-                        onExtractShadow(gate.shadowRewardId)
-                      }
-                    }}
-                    className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(239,68,68,0.6)] transition-all"
-                  >
-                    FIGHT BOSS & EXTRACT SHADOW (ARISE)
-                  </button>
-                )}
-
-                {gate.cleared && gate.shadowRewardId && (
-                  <button
-                    onClick={() => onExtractShadow(gate.shadowRewardId!)}
-                    className="w-full py-2.5 bg-purple-600 hover:bg-purple-500 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(168,85,247,0.6)] transition-all"
-                  >
-                    ARISE (EXTRACT SHADOW SOLDIER)
-                  </button>
-                )}
-
-                {!gate.cleared && !canFightBoss && (
-                  <p className="text-slate-500 font-mono text-xs text-center w-full py-2 bg-slate-900/50 rounded">
-                    Complete {gate.requiredMissions - gate.currentProgress} more quest(s) to unlock Boss Fight
-                  </p>
-                )}
+                <button
+                  onClick={() => setActiveBattleGate(gate)}
+                  className="w-full py-2.5 bg-red-600 hover:bg-red-500 text-white font-bold font-mono text-xs uppercase tracking-widest rounded-lg shadow-[0_0_20px_rgba(239,68,68,0.6)] transition-all"
+                >
+                  {gate.cleared ? "RE-ENTER BOSS ARENA" : canFightBoss ? "ENTER BOSS ARENA & EXTRACT SHADOW" : "ENTER DUNGEON ARENA"}
+                </button>
               </div>
             </div>
           )

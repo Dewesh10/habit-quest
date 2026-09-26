@@ -32,9 +32,9 @@ function makeId(name: string): string {
 export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProps) {
   const [name, setName] = useState(initial?.name ?? "")
   const [category, setCategory] = useState<HabitCategory>(initial?.category ?? "Personal")
-  const [color, setColor] = useState(initial?.color ?? "blue ")
+  const [color, setColor] = useState(initial?.color ? initial.color.trim() : "blue")
   const [icon, setIcon] = useState(initial?.icon ?? "Target")
-  const [xpValue, setXpValue] = useState(initial?.xpValue ?? 10)
+  const [xpValue, setXpValue] = useState(initial?.xpValue ?? 15)
   const [freqType, setFreqType] = useState<"daily" | "specific">(
     Array.isArray(initial?.frequency) ? "specific" : "daily"
   )
@@ -72,24 +72,24 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4 font-mono">
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Name</label>
+        <label className="text-xs text-cyan-300 block mb-1 uppercase">Quest Title</label>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Meditate"
-          className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue -500"
+          placeholder="e.g. 50 Push-ups or 2h Deep Study Block"
+          className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-400"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs text-slate-400 block mb-1">Category</label>
+          <label className="text-xs text-cyan-300 block mb-1 uppercase">Category</label>
           <select
             value={category}
             onChange={(e) => setCategory(e.target.value as HabitCategory)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue -500"
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-400"
           >
             {CATEGORIES.map((c) => (
               <option key={c} value={c}>{c}</option>
@@ -97,29 +97,30 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
           </select>
         </div>
         <div>
-          <label className="text-xs text-slate-400 block mb-1">XP Value</label>
+          <label className="text-xs text-cyan-300 block mb-1 uppercase">XP Reward</label>
           <input
             type="number"
-            min={1}
+            min={5}
+            step={5}
             value={xpValue}
             onChange={(e) => setXpValue(Number(e.target.value))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-blue -500"
+            className="w-full bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-cyan-400"
           />
         </div>
       </div>
 
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Icon</label>
+        <label className="text-xs text-cyan-300 block mb-1 uppercase">Icon Token</label>
         <div className="flex flex-wrap gap-2">
           {ICONS.map((i) => (
             <button
               type="button"
               key={i}
               onClick={() => setIcon(i)}
-              className={`px-2 py-1 rounded-md text-xs border ${
+              className={`px-2.5 py-1 rounded text-xs border ${
                 icon === i
-                  ? "border-blue -500 text-blue -400"
-                  : "border-slate-700 text-slate-400"
+                  ? "border-cyan-400 text-cyan-300 bg-cyan-950/60"
+                  : "border-slate-800 text-slate-400 hover:text-white"
               }`}
             >
               {i}
@@ -129,7 +130,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
       </div>
 
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Color</label>
+        <label className="text-xs text-cyan-300 block mb-1 uppercase">Glow Color</label>
         <div className="flex flex-wrap gap-2">
           {COLORS.map((c) => (
             <button
@@ -137,7 +138,7 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
               key={c}
               onClick={() => setColor(c)}
               className={`w-7 h-7 rounded-full border-2 ${SWATCH_CLASSES[c]} ${
-                color === c ? "border-white" : "border-transparent"
+                color === c ? "border-white shadow-[0_0_10px_rgba(255,255,255,0.8)]" : "border-transparent"
               }`}
               title={c}
             />
@@ -146,26 +147,26 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
       </div>
 
       <div>
-        <label className="text-xs text-slate-400 block mb-1">Frequency</label>
+        <label className="text-xs text-cyan-300 block mb-1 uppercase">Frequency</label>
         <div className="flex gap-2 mb-2">
           <button
             type="button"
             onClick={() => setFreqType("daily")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               freqType === "daily"
-                ? "bg-blue -500/10 text-blue -400"
-                : "bg-slate-800 text-slate-400"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                : "bg-slate-900 text-slate-400"
             }`}
           >
-            Daily
+            Daily Quest
           </button>
           <button
             type="button"
             onClick={() => setFreqType("specific")}
             className={`px-3 py-1.5 rounded-lg text-xs font-medium ${
               freqType === "specific"
-                ? "bg-blue -500/10 text-blue -400"
-                : "bg-slate-800 text-slate-400"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40"
+                : "bg-slate-900 text-slate-400"
             }`}
           >
             Specific Days
@@ -180,8 +181,8 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
                 onClick={() => toggleDay(idx)}
                 className={`w-8 h-8 rounded-full text-xs font-medium ${
                   days.includes(idx)
-                    ? "bg-blue -500 text-slate-950"
-                    : "bg-slate-800 text-slate-400"
+                    ? "bg-cyan-400 text-slate-950 font-bold"
+                    : "bg-slate-900 text-slate-400"
                 }`}
               >
                 {label[0]}
@@ -195,15 +196,15 @@ export default function HabitForm({ initial, onSubmit, onCancel }: HabitFormProp
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-slate-800 hover:bg-slate-700 text-white text-sm font-medium py-2 rounded-lg transition-colors"
+          className="flex-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 text-xs font-bold uppercase py-2.5 rounded-lg transition-colors"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="flex-1 bg-blue -500 hover:bg-blue -400 text-slate-950 text-sm font-semibold py-2 rounded-lg transition-colors"
+          className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold uppercase py-2.5 rounded-lg shadow-[0_0_16px_rgba(56,189,248,0.5)] transition-colors"
         >
-          {initial ? "Save Changes" : "Create Habit"}
+          {initial ? "Save Changes" : "Create Quest"}
         </button>
       </div>
     </form>

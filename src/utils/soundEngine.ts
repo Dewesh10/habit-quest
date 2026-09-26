@@ -23,8 +23,8 @@ class SoundEngine {
     const gain = this.ctx.createGain()
 
     osc.type = 'sine'
-    osc.frequency.setValueAtTime(880, now) // A5
-    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.1) // A6
+    osc.frequency.setValueAtTime(880, now)
+    osc.frequency.exponentialRampToValueAtTime(1760, now + 0.1)
 
     gain.gain.setValueAtTime(0.15, now)
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25)
@@ -42,7 +42,7 @@ class SoundEngine {
     if (!this.ctx) return
     const now = this.ctx.currentTime
 
-    const notes = [523.25, 659.25, 783.99, 1046.50] // C5, E5, G5, C6
+    const notes = [523.25, 659.25, 783.99, 1046.50]
     notes.forEach((freq, idx) => {
       if (!this.ctx) return
       const osc = this.ctx.createOscillator()
@@ -69,7 +69,7 @@ class SoundEngine {
     if (!this.ctx) return
     const now = this.ctx.currentTime
 
-    const freqs = [440, 554.37, 659.25, 880, 1108.73, 1318.51] // A4, C#5, E5, A5, C#6, E6
+    const freqs = [440, 554.37, 659.25, 880, 1108.73, 1318.51]
     freqs.forEach((freq, idx) => {
       if (!this.ctx) return
       const osc = this.ctx.createOscillator()
@@ -114,13 +114,12 @@ class SoundEngine {
     osc.stop(now + 0.7)
   }
 
-  // ARISE Shadow Extraction sound (Deep bass swell + ethereal resonance)
+  // ARISE Shadow Extraction sound
   playAriseSound() {
     this.initCtx()
     if (!this.ctx) return
     const now = this.ctx.currentTime
 
-    // Sub-bass sweep
     const subOsc = this.ctx.createOscillator()
     const subGain = this.ctx.createGain()
     subOsc.type = 'sine'
@@ -134,7 +133,6 @@ class SoundEngine {
     subOsc.start(now)
     subOsc.stop(now + 1.2)
 
-    // High shimmer notes
     const shimmerNotes = [880, 1046.5, 1318.5, 1760]
     shimmerNotes.forEach((freq, idx) => {
       if (!this.ctx) return
@@ -152,6 +150,30 @@ class SoundEngine {
       osc.start(t)
       osc.stop(t + 0.5)
     })
+  }
+
+  // Web Speech API Text-to-Speech Mechanical System Voice Directives
+  speakSystemDirective(text: string) {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) return
+    try {
+      window.speechSynthesis.cancel() // Cancel any ongoing speech
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.rate = 0.95
+      utterance.pitch = 0.85
+      utterance.volume = 0.9
+
+      const voices = window.speechSynthesis.getVoices()
+      const preferredVoice = voices.find(
+        (v) => v.name.includes("Google") || v.name.includes("Natural") || v.name.includes("English")
+      )
+      if (preferredVoice) {
+        utterance.voice = preferredVoice
+      }
+
+      window.speechSynthesis.speak(utterance)
+    } catch {
+      // Speech synthesis unsupported or blocked
+    }
   }
 }
 

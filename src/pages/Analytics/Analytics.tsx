@@ -1,4 +1,4 @@
-﻿import {
+import {
   BarChart,
   Bar,
   XAxis,
@@ -30,6 +30,7 @@ import {
 
 const NEON = "#38bdf8"
 const NEON_DIM = "rgba(56, 189, 248, 0.15)"
+
 function BarGradientDefs() {
   return (
     <defs>
@@ -37,19 +38,15 @@ function BarGradientDefs() {
         <stop offset="0%" stopColor="#7dd3fc" />
         <stop offset="100%" stopColor="#0ea5e9" />
       </linearGradient>
-      <linearGradient id="barGradientH" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%" stopColor="#0ea5e9" />
-        <stop offset="100%" stopColor="#7dd3fc" />
-      </linearGradient>
     </defs>
   )
 }
 
-function ChartTooltip({ active, payload, label }: any) {
+function ChartTooltip({ active, payload, label }: { active?: boolean; payload?: any[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-slate-900 border border-blue-500/30 rounded-lg px-3 py-2 text-xs text-white shadow-[0_0_16px_rgba(56,189,248,0.25)]">
-      <p className="font-medium mb-1 text-blue-300">
+    <div className="bg-slate-950 border border-cyan-500/40 rounded-lg px-3 py-2 text-xs text-white font-mono shadow-[0_0_16px_rgba(56,189,248,0.3)]">
+      <p className="font-bold mb-1 text-cyan-300">
         {label ?? payload[0].payload.name ?? payload[0].payload.category}
       </p>
       {payload.map((p: any, i: number) => (
@@ -80,10 +77,9 @@ function ChartCard({
       className={`${hero ? "hero-panel" : "system-panel card-hover"} relative p-5 md:p-6 overflow-hidden ${className}`}
     >
       <CornerBrackets />
-      {!hero && <div className="system-panel-scan" style={{ top: 0 }} />}
-      <div className="mb-4">
-        <h2 className={hero ? "system-panel-header text-blue-300/90" : "system-panel-header"}>{title}</h2>
-        {subtitle && <p className="text-xs text-slate-500 mt-1">{subtitle}</p>}
+      <div className="mb-4 font-mono">
+        <h2 className="system-panel-header font-bold text-cyan-300 tracking-wider">{title}</h2>
+        {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
       </div>
       {children}
     </div>
@@ -110,16 +106,18 @@ export default function Analytics() {
   const xpData = buildXPProgressionData(habits, completions, monthDates)
 
   return (
-    <div>
-      <h1 className="font-display text-2xl font-bold text-white mb-1 uppercase tracking-wide">
-        Analytics
-      </h1>
-      <p className="text-slate-500 mb-6 text-sm">
-        {getMonthName(month)} {year}
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="font-display text-2xl font-bold text-white uppercase tracking-wider">
+          Hunter Combat & Quest Analytics
+        </h1>
+        <p className="text-slate-400 text-xs font-mono mt-0.5">
+          {getMonthName(month)} {year} &middot; Performance & XP Analysis
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        <ChartCard title="Daily Completion" subtitle="Percent of scheduled habits done per day">
+        <ChartCard title="Daily Quest Clearance" subtitle="Percent of scheduled quests completed per day">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={dailyData}>
               <BarGradientDefs />
@@ -132,7 +130,7 @@ export default function Analytics() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Weekly Completion" subtitle="Aggregated by calendar week">
+        <ChartCard title="Weekly Clearance Pace" subtitle="Aggregated completion rate by week">
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={weeklyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
@@ -144,7 +142,7 @@ export default function Analytics() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="XP Progression" subtitle="Cumulative XP earned this month" className="lg:col-span-2" hero>
+        <ChartCard title="XP Progression Curve" subtitle="Cumulative XP trajectory this month" className="lg:col-span-2" hero>
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={xpData}>
               <defs>
@@ -168,9 +166,9 @@ export default function Analytics() {
           </ResponsiveContainer>
         </ChartCard>
 
-        <ChartCard title="Category Performance" subtitle="Completion rate by category">
+        <ChartCard title="Category Mastery Radar" subtitle="Completion density by quest category">
           {categoryData.length === 0 ? (
-            <p className="text-slate-500 text-sm">No categories yet.</p>
+            <p className="text-slate-500 font-mono text-sm py-8 text-center">No category data yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <RadarChart data={categoryData}>
@@ -184,9 +182,9 @@ export default function Analytics() {
           )}
         </ChartCard>
 
-        <ChartCard title="Habit Comparison" subtitle="Ranked by completion rate">
+        <ChartCard title="Quest Ranking Comparison" subtitle="Quests ranked by clearance percentage">
           {comparisonData.length === 0 ? (
-            <p className="text-slate-500 text-sm">No habits yet.</p>
+            <p className="text-slate-500 font-mono text-sm py-8 text-center">No active quests yet.</p>
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={comparisonData} layout="vertical" margin={{ left: 10 }}>
@@ -200,7 +198,7 @@ export default function Analytics() {
           )}
         </ChartCard>
 
-        <ChartCard title="Activity Heatmap" subtitle="Last 26 weeks" className="lg:col-span-2">
+        <ChartCard title="Hunter Activity Heatmap" subtitle="Consistency over the last 26 weeks" className="lg:col-span-2">
           <CalendarHeatmap habits={habits} completions={completions} weeksToShow={26} />
         </ChartCard>
       </div>
